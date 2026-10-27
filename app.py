@@ -330,25 +330,25 @@ try:
     </p>
     </div>
     """
-                        with cols_top[i]:
-                            st.markdown(html_region, unsafe_allow_html=True)
-                            fig_mini = go.Figure(go.Bar(
-                                x=df_motivos_region['PORCENTAJE'], y=df_motivos_region['MOTIVO_BOLD'], orientation='h',
-                                text=df_motivos_region['TEXTO_BARRA'], textposition='outside',
-                                textfont=dict(size=20, color='black', family="Inter"),
-                                marker_color=colores_barras, cliponaxis=False, hovertemplate="<b>%{y}</b>: %{x:.1f}%<extra></extra>"
-                            ))
-                            max_x = df_motivos_region['PORCENTAJE'].max() if not df_motivos_region.empty else 100
-                            fig_mini.update_layout(
-                                plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', height=400,
-                                xaxis=dict(showgrid=False, showticklabels=False, title="", range=[0, max_x * 1.35]),
-                                yaxis=dict(showgrid=False, title="", tickfont=dict(size=16, color='black')), 
-                                margin=dict(l=0, r=10, t=30, b=0),
-                                hoverlabel=dict(bgcolor="#ffffff", font_size=15, font_family="Inter", font_color="#333333", bordercolor="#EAEAEA")
-                            )
-                            st.plotly_chart(fig_mini, use_container_width=True)
-                else:
-                    st.warning("No se encontraron las columnas necesarias para el Top 3 de Regiones.")
+                    with cols_top[i]:
+                        st.markdown(html_region, unsafe_allow_html=True)
+                        fig_mini = go.Figure(go.Bar(
+                            x=df_motivos_region['PORCENTAJE'], y=df_motivos_region['MOTIVO_BOLD'], orientation='h',
+                            text=df_motivos_region['TEXTO_BARRA'], textposition='outside',
+                            textfont=dict(size=20, color='black', family="Inter"),
+                            marker_color=colores_barras, cliponaxis=False, hovertemplate="<b>%{y}</b>: %{x:.1f}%<extra></extra>"
+                        ))
+                        max_x = df_motivos_region['PORCENTAJE'].max() if not df_motivos_region.empty else 100
+                        fig_mini.update_layout(
+                            plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', height=400,
+                            xaxis=dict(showgrid=False, showticklabels=False, title="", range=[0, max_x * 1.35]),
+                            yaxis=dict(showgrid=False, title="", tickfont=dict(size=16, color='black')), 
+                            margin=dict(l=0, r=10, t=30, b=0),
+                            hoverlabel=dict(bgcolor="#ffffff", font_size=15, font_family="Inter", font_color="#333333", bordercolor="#EAEAEA")
+                        )
+                        st.plotly_chart(fig_mini, use_container_width=True)
+            else:
+                st.warning("No se encontraron las columnas necesarias para el Top 3 de Regiones.")
 
         # ==========================================
         # DIAPOSITIVA 4: TOP 3 AGENTES
