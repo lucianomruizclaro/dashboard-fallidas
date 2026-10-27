@@ -104,14 +104,12 @@ def mostrar_titulo_bloque(titulo):
 # Títulos actualizados
 st.title("Comparativa de Fallidas 2026") 
 
-# Cargar archivo desde la interfaz
-st.markdown("<br>", unsafe_allow_html=True)
-archivo_excel = st.file_uploader("📂 Arrastra tu archivo Excel de Fallidas aquí", type=["xlsx"])
+# Ruta del archivo
+ruta = r'C:\Users\EXT84285\Desktop\FALLIDAS\FALLIDAS ARG\Fallidas 082026 Arg.xlsx'
 
-if archivo_excel is not None:
-    try:
-        xls = pd.ExcelFile(archivo_excel, engine='openpyxl')
-        # (AQUÍ SIGUE TODO TU CÓDIGO ACTUAL, asegúrate de indentarlo un nivel hacia la derecha)
+try:
+    xls = pd.ExcelFile(ruta, engine='openpyxl')
+    nombres_hojas = xls.sheet_names 
     
     nombres_meses = {
         1: 'ENERO', 2: 'FEBRERO', 3: 'MARZO', 4: 'ABRIL',
