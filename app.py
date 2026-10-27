@@ -101,17 +101,14 @@ def mostrar_titulo_bloque(titulo):
     </div>
     """, unsafe_allow_html=True)
 
-# Títulos actualizados
 st.title("Comparativa de Fallidas 2026") 
 
 # ==========================================
-# LECTURA AUTOMÁTICA DEL ARCHIVO (RUTA RELATIVA)
+# CACHÉ PARA LECTURA Y LIMPIEZA DE DATOS
 # ==========================================
-# Al poner solo el nombre, Streamlit buscará el archivo en la misma carpeta del repositorio
-ruta_excel = 'Fallidas 082026 Arg.xlsx'
-
-try:
-    xls = pd.ExcelFile(ruta_excel, engine='openpyxl')
+@st.cache_data
+def cargar_y_limpiar_datos(ruta):
+    xls = pd.ExcelFile(ruta, engine='openpyxl')
     nombres_hojas = xls.sheet_names 
     
     nombres_meses = {
@@ -135,14 +132,14 @@ try:
             if hoja not in meses_ordenados:
                 meses_ordenados.append(hoja)
 
+    df_08, df_09, df_cancel = None, None, None
+    col_desvio = 'DESVIO'
+    col_region = 'REGION'
+    col_agente = 'GROUP_COMER' 
+
     if 'Base 08' in nombres_hojas and 'Base 09' in nombres_hojas:
-        
         df_08 = pd.read_excel(xls, sheet_name='Base 08')
         df_09 = pd.read_excel(xls, sheet_name='Base 09')
-        
-        col_desvio = 'DESVIO'
-        col_region = 'REGION'
-        col_agente = 'GROUP_COMER' 
         
         for df in [df_08, df_09]:
             if col_desvio in df.columns:
@@ -152,38 +149,57 @@ try:
             if col_agente in df.columns:
                 df[col_agente] = df[col_agente].astype(str).str.strip().str.upper()
 
-        if 'Cancel' in nombres_hojas:
-            df_cancel = pd.read_excel(xls, sheet_name='Cancel')
-            col_canal = 'CANAL'
-            col_motivo = 'MOTIVO CANCELACION'
-            
-            if col_canal in df_cancel.columns:
-                df_cancel[col_canal] = df_cancel[col_canal].astype(str).str.strip().str.upper()
-            if col_motivo in df_cancel.columns:
-                df_cancel[col_motivo] = df_cancel[col_motivo].astype(str).str.strip().str.upper()
+    if 'Cancel' in nombres_hojas:
+        df_cancel = pd.read_excel(xls, sheet_name='Cancel')
+        col_canal = 'CANAL'
+        col_motivo = 'MOTIVO CANCELACION'
+        col_obs = 'OBS'
+        
+        if col_canal in df_cancel.columns:
+            df_cancel[col_canal] = df_cancel[col_canal].astype(str).str.strip().str.upper()
+        if col_motivo in df_cancel.columns:
+            df_cancel[col_motivo] = df_cancel[col_motivo].astype(str).str.strip().str.upper()
+        if col_obs in df_cancel.columns:
+            df_cancel[col_obs] = df_cancel[col_obs].astype(str).str.strip().str.upper()
 
-        # ==========================================
-        # MENU LATERAL
-        # ==========================================
-        with st.sidebar:
-            st.markdown("<h2 style='text-align: center; color: #333; margin-bottom: 20px;'>Menú de Análisis</h2>", unsafe_allow_html=True)
-            
-            seleccion = st.radio(
-                "Navegación",
-                [
-                    "1. KPIs Generales", 
-                    "2. Comparativa Desvíos", 
-                    "3. Regiones Críticas", 
-                    "4. Top Agentes", 
-                    "5. Evolución Mensual",
-                    "6. Canceladas por Canal",
-                    "7. Motivos Cancelación",
-                    "8. Desiste del Servicio",
-                    "9. Autogestión"
-                ],
-                label_visibility="collapsed" 
-            )
+    return nombres_hojas, mapa_meses, meses_ordenados, df_08, df_09, df_cancel
 
+# ==========================================
+# LÓGICA PRINCIPAL Y MENÚ LATERAL
+# ==========================================
+ruta_excel = 'Fallidas 082026 Arg.xlsx'
+
+try:
+    # 1. Cargar datos (Esto solo demorará la primera vez que se abre la app)
+    nombres_hojas, mapa_meses, meses_ordenados, df_08, df_09, df_cancel = cargar_y_limpiar_datos(ruta_excel)
+    
+    # Nombres de columnas estáticos usados en varias vistas
+    col_desvio, col_region, col_agente = 'DESVIO', 'REGION', 'GROUP_COMER'
+    col_canal, col_motivo, col_obs = 'CANAL', 'MOTIVO CANCELACION', 'OBS'
+
+    # 2. Configurar el menú lateral
+    with st.sidebar:
+        st.markdown("<h2 style='text-align: center; color: #333; margin-bottom: 20px;'>Menú de Análisis</h2>", unsafe_allow_html=True)
+        
+        seleccion = st.radio(
+            "Navegación",
+            [
+                "1. KPIs Generales", 
+                "2. Comparativa Desvíos", 
+                "3. Regiones Críticas", 
+                "4. Top Agentes", 
+                "5. Evolución Mensual",
+                "6. Canceladas por Canal",
+                "7. Motivos Cancelación",
+                "8. Desiste del Servicio",
+                "9. Autogestión"
+            ],
+            label_visibility="collapsed" 
+        )
+
+    # 3. Renderizar vistas si los dataframes principales existen
+    if df_08 is not None and df_09 is not None:
+        
         # ==========================================
         # DIAPOSITIVA 1: KPIs COMPARATIVOS 
         # ==========================================
@@ -231,12 +247,12 @@ try:
                     bloque_vs = f'<div style="visibility: hidden; background-color: transparent; border-radius: 8px; padding: 10px; border: 1px solid transparent; margin-top: 15px;"><span style="font-size: 22px; font-weight: bold;">➖ 0.0%</span> <span style="font-size: 18px;">vs Agosto</span></div>'
 
                 return f"""
-<div style="background-color: {color_fondo}; padding: 30px; border-radius: 16px; text-align: center; border: 1px solid {color_borde}; border-top: 12px solid {color_borde_top}; box-shadow: 4px 4px 15px rgba(0,0,0,0.05); height: 100%; animation: slideUp 0.5s ease-out forwards; opacity: 0;">
-<p style="margin: 0; font-size: 20px; color: #555; font-weight: bold; text-transform: uppercase;">{titulo}</p>
-<p style="margin: 10px 0 0 0; font-size: 60px; color: {color_numero}; font-weight: 900;">{valor_actual}</p>
-{bloque_vs}
-</div>
-"""
+                <div style="background-color: {color_fondo}; padding: 30px; border-radius: 16px; text-align: center; border: 1px solid {color_borde}; border-top: 12px solid {color_borde_top}; box-shadow: 4px 4px 15px rgba(0,0,0,0.05); height: 100%; animation: slideUp 0.5s ease-out forwards; opacity: 0;">
+                <p style="margin: 0; font-size: 20px; color: #555; font-weight: bold; text-transform: uppercase;">{titulo}</p>
+                <p style="margin: 10px 0 0 0; font-size: 60px; color: {color_numero}; font-weight: 900;">{valor_actual}</p>
+                {bloque_vs}
+                </div>
+                """
 
             row1 = st.columns(4)
             with row1[0]: st.markdown(crear_tarjeta_kpi("Total Agosto", total_08, es_total=True), unsafe_allow_html=True)
@@ -320,16 +336,16 @@ try:
                     if len(colores_barras) > 0: colores_barras[-1] = colores_top[i] 
                     
                     html_region = f"""
-    <div style="border-top: 12px solid {colores_top[i]}; padding: 30px 20px; background-color: #ffffff; border-radius: 0 0 12px 12px; box-shadow: 2px 2px 10px rgba(0,0,0,0.05); animation: slideUp 0.5s ease-out forwards; opacity: 0;">
-    <h2 style="margin-bottom: 10px; color: #111; font-size: 38px; font-weight: 900; text-align: center;">#{i+1} {region}</h2>
-    <p style="font-size: 20px; color: #666; margin-top: 5px; margin-bottom: 0px; text-align: center;">
-    Desvío Comercial: <strong style="color: {colores_top[i]}; font-size: 34px;">{pct_comercial:.1f}%</strong>
-    </p>
-    <p style="font-size: 18px; color: #888; margin-top: 5px; text-align: center;">
-    Total fallidas en región: <strong>{cantidad_total}</strong>
-    </p>
-    </div>
-    """
+                    <div style="border-top: 12px solid {colores_top[i]}; padding: 30px 20px; background-color: #ffffff; border-radius: 0 0 12px 12px; box-shadow: 2px 2px 10px rgba(0,0,0,0.05); animation: slideUp 0.5s ease-out forwards; opacity: 0;">
+                    <h2 style="margin-bottom: 10px; color: #111; font-size: 38px; font-weight: 900; text-align: center;">#{i+1} {region}</h2>
+                    <p style="font-size: 20px; color: #666; margin-top: 5px; margin-bottom: 0px; text-align: center;">
+                    Desvío Comercial: <strong style="color: {colores_top[i]}; font-size: 34px;">{pct_comercial:.1f}%</strong>
+                    </p>
+                    <p style="font-size: 18px; color: #888; margin-top: 5px; text-align: center;">
+                    Total fallidas en región: <strong>{cantidad_total}</strong>
+                    </p>
+                    </div>
+                    """
                     with cols_top[i]:
                         st.markdown(html_region, unsafe_allow_html=True)
                         fig_mini = go.Figure(go.Bar(
@@ -375,24 +391,24 @@ try:
                         html_delta = f'<span style="color: {color_delta}; font-size: 24px; font-weight: bold;">{flecha} {abs(delta_pct):.1f}%</span> <span style="font-size: 20px;">vs Agosto</span>'
 
                     html_tarjeta = f"""
-    <div style="background-color: #ffffff; padding: 40px; border-radius: 16px; text-align: center; border: 1px solid #eee; border-top: 12px solid {colores_alerta[i]}; box-shadow: 4px 4px 15px rgba(0,0,0,0.05); height: 100%; animation: slideUp 0.5s ease-out forwards; opacity: 0;">
-    <p style="margin: 0; font-size: 40px; color: {colores_alerta[i]}; font-weight: 900;">#{i+1}</p>
-    <h3 style="margin: 10px 0 20px 0; color: #111; font-size: 32px; font-weight: 900;">{agente}</h3>
-    <div style="display: flex; justify-content: center; gap: 40px; margin-bottom: 20px;">
-    <div>
-    <p style="margin: 0; font-size: 20px; color: #666;">Septiembre</p>
-    <p style="margin: 0; font-size: 50px; font-weight: 900; color: #FF4B4B;">{cantidad_09}</p>
-    </div>
-    <div style="border-left: 2px solid #ddd; padding-left: 40px;">
-    <p style="margin: 0; font-size: 20px; color: #666;">Agosto</p>
-    <p style="margin: 0; font-size: 38px; font-weight: 600; color: #555;">{cantidad_08}</p>
-    </div>
-    </div>
-    <div style="background-color: #f8f9fa; border-radius: 8px; padding: 15px; border: 1px solid #eee;">
-    {html_delta}
-    </div>
-    </div>
-    """
+                    <div style="background-color: #ffffff; padding: 40px; border-radius: 16px; text-align: center; border: 1px solid #eee; border-top: 12px solid {colores_alerta[i]}; box-shadow: 4px 4px 15px rgba(0,0,0,0.05); height: 100%; animation: slideUp 0.5s ease-out forwards; opacity: 0;">
+                    <p style="margin: 0; font-size: 40px; color: {colores_alerta[i]}; font-weight: 900;">#{i+1}</p>
+                    <h3 style="margin: 10px 0 20px 0; color: #111; font-size: 32px; font-weight: 900;">{agente}</h3>
+                    <div style="display: flex; justify-content: center; gap: 40px; margin-bottom: 20px;">
+                    <div>
+                    <p style="margin: 0; font-size: 20px; color: #666;">Septiembre</p>
+                    <p style="margin: 0; font-size: 50px; font-weight: 900; color: #FF4B4B;">{cantidad_09}</p>
+                    </div>
+                    <div style="border-left: 2px solid #ddd; padding-left: 40px;">
+                    <p style="margin: 0; font-size: 20px; color: #666;">Agosto</p>
+                    <p style="margin: 0; font-size: 38px; font-weight: 600; color: #555;">{cantidad_08}</p>
+                    </div>
+                    </div>
+                    <div style="background-color: #f8f9fa; border-radius: 8px; padding: 15px; border: 1px solid #eee;">
+                    {html_delta}
+                    </div>
+                    </div>
+                    """
                     with cols_agentes[i]:
                         st.markdown(html_tarjeta, unsafe_allow_html=True)
             else:
@@ -469,7 +485,7 @@ try:
         elif seleccion == "6. Canceladas por Canal":
             mostrar_titulo_bloque("Análisis de Órdenes Canceladas por Canal")
             
-            if 'Cancel' in nombres_hojas and 'df_cancel' in locals():
+            if df_cancel is not None:
                 total_canceladas = len(df_cancel)
                 if col_canal in df_cancel.columns:
                     canales_counts = df_cancel[col_canal].value_counts()
@@ -478,23 +494,23 @@ try:
                     
                     with cols_canales[0]:
                         st.markdown(f"""
-    <div style="background-color: #ffffff; padding: 25px; border-radius: 12px; text-align: center; border: 1px solid #e0e0e0; border-top: 8px solid #343a40; box-shadow: 2px 2px 10px rgba(0,0,0,0.05); height: 100%; margin-bottom: 20px; animation: slideUp 0.5s ease-out forwards; opacity: 0;">
-    <h3 style="margin: 0 0 15px 0; color: #555; font-size: 20px; font-weight: bold; text-transform: uppercase;">Total</h3>
-    <p style="margin: 0; font-size: 45px; color: #111; font-weight: 900;">{total_canceladas}</p>
-    <p style="margin: 5px 0 0 0; font-size: 20px; color: #666; font-weight: bold;">12,37%</p>
-    </div>
-    """, unsafe_allow_html=True)
+                        <div style="background-color: #ffffff; padding: 25px; border-radius: 12px; text-align: center; border: 1px solid #e0e0e0; border-top: 8px solid #343a40; box-shadow: 2px 2px 10px rgba(0,0,0,0.05); height: 100%; margin-bottom: 20px; animation: slideUp 0.5s ease-out forwards; opacity: 0;">
+                        <h3 style="margin: 0 0 15px 0; color: #555; font-size: 20px; font-weight: bold; text-transform: uppercase;">Total</h3>
+                        <p style="margin: 0; font-size: 45px; color: #111; font-weight: 900;">{total_canceladas}</p>
+                        <p style="margin: 5px 0 0 0; font-size: 20px; color: #666; font-weight: bold;">12,37%</p>
+                        </div>
+                        """, unsafe_allow_html=True)
                     
                     for i, (canal, cantidad) in enumerate(canales_counts.items()):
                         col_idx = (i + 1) % columnas_por_fila 
                         pct_canal = (cantidad / total_canceladas) * 100
                         html_canal = f"""
-    <div style="background-color: #ffffff; padding: 25px; border-radius: 12px; text-align: center; border: 1px solid #e0e0e0; border-top: 8px solid #FF4B4B; box-shadow: 2px 2px 10px rgba(0,0,0,0.05); height: 100%; margin-bottom: 20px; animation: slideUp 0.6s ease-out forwards; opacity: 0;">
-    <h3 style="margin: 0 0 15px 0; color: #444; font-size: 20px; font-weight: bold;">{canal}</h3>
-    <p style="margin: 0; font-size: 45px; color: #FF4B4B; font-weight: 900;">{cantidad}</p>
-    <p style="margin: 5px 0 0 0; font-size: 16px; color: #888; font-weight: bold;">{pct_canal:.1f}%</p>
-    </div>
-    """
+                        <div style="background-color: #ffffff; padding: 25px; border-radius: 12px; text-align: center; border: 1px solid #e0e0e0; border-top: 8px solid #FF4B4B; box-shadow: 2px 2px 10px rgba(0,0,0,0.05); height: 100%; margin-bottom: 20px; animation: slideUp 0.6s ease-out forwards; opacity: 0;">
+                        <h3 style="margin: 0 0 15px 0; color: #444; font-size: 20px; font-weight: bold;">{canal}</h3>
+                        <p style="margin: 0; font-size: 45px; color: #FF4B4B; font-weight: 900;">{cantidad}</p>
+                        <p style="margin: 5px 0 0 0; font-size: 16px; color: #888; font-weight: bold;">{pct_canal:.1f}%</p>
+                        </div>
+                        """
                         with cols_canales[col_idx]:
                             st.markdown(html_canal, unsafe_allow_html=True)
                 else:
@@ -508,7 +524,7 @@ try:
         elif seleccion == "7. Motivos Cancelación":
             mostrar_titulo_bloque("Top Motivos de Cancelación")
             
-            if 'Cancel' in nombres_hojas and 'df_cancel' in locals():
+            if df_cancel is not None:
                 total_canceladas = len(df_cancel)
                 if col_motivo in df_cancel.columns:
                     df_motivos_cancel = df_cancel[col_motivo].value_counts().reset_index()
@@ -556,14 +572,10 @@ try:
         elif seleccion == "8. Desiste del Servicio":
             mostrar_titulo_bloque("Detalle: Cliente Desiste del Servicio")
             
-            if 'Cancel' in nombres_hojas and 'df_cancel' in locals():
-                col_motivo = 'MOTIVO CANCELACION'
-                col_obs = 'OBS'
-                
+            if df_cancel is not None:
                 if col_motivo in df_cancel.columns and col_obs in df_cancel.columns:
                     df_desiste = df_cancel[df_cancel[col_motivo].astype(str).str.contains('CLIENTE DESISTE', na=False, case=False)].copy()
                     df_desiste = df_desiste.dropna(subset=[col_obs])
-                    df_desiste[col_obs] = df_desiste[col_obs].astype(str).str.strip().str.upper()
                     
                     basura = ['', 'NAN', 'NAT', 'NONE', 'NULL', '<NA>', 'N/A', 'NA', '-', '0', 'SIN REGISTRO WFM', 'SIN REGISTRO']
                     df_obs_validas = df_desiste[~df_desiste[col_obs].isin(basura)]
@@ -571,10 +583,10 @@ try:
                     
                     if total_validas > 0:
                         st.markdown(f"""
-    <div style="background-color: #ffffff; padding: 20px; border-radius: 12px; border-left: 8px solid #FF4B4B; margin-bottom: 30px; box-shadow: 2px 2px 10px rgba(0,0,0,0.05); animation: slideUp 0.5s ease-out forwards; opacity: 0;">
-    <p style="margin: 0; font-size: 18px; color: #555;">Total de observaciones válidas analizadas para "Cliente Desiste": <strong style="font-size: 24px; color: #111;">{total_validas}</strong></p>
-    </div>
-    """, unsafe_allow_html=True)
+                        <div style="background-color: #ffffff; padding: 20px; border-radius: 12px; border-left: 8px solid #FF4B4B; margin-bottom: 30px; box-shadow: 2px 2px 10px rgba(0,0,0,0.05); animation: slideUp 0.5s ease-out forwards; opacity: 0;">
+                        <p style="margin: 0; font-size: 18px; color: #555;">Total de observaciones válidas analizadas para "Cliente Desiste": <strong style="font-size: 24px; color: #111;">{total_validas}</strong></p>
+                        </div>
+                        """, unsafe_allow_html=True)
                         
                         df_obs_counts = df_obs_validas[col_obs].value_counts().reset_index()
                         df_obs_counts.columns = ['OBSERVACION', 'CANTIDAD']
@@ -626,18 +638,13 @@ try:
         elif seleccion == "9. Autogestión":
             mostrar_titulo_bloque("Detalle: Canal Autogestión (Duplicidad de Carga)")
             
-            if 'Cancel' in nombres_hojas and 'df_cancel' in locals():
-                col_canal = 'CANAL'
-                col_obs = 'OBS'
-                col_motivo = 'MOTIVO CANCELACION'
-                
+            if df_cancel is not None:
                 if col_canal in df_cancel.columns and col_obs in df_cancel.columns and col_motivo in df_cancel.columns:
                     condicion_canal = df_cancel[col_canal].astype(str).str.contains('AUTOGESTION', na=False, case=False)
                     condicion_motivo = df_cancel[col_motivo].astype(str).str.contains('DUPLICIDAD DE CARGA', na=False, case=False)
                     
                     df_auto = df_cancel[condicion_canal & condicion_motivo].copy()
                     df_auto = df_auto.dropna(subset=[col_obs])
-                    df_auto[col_obs] = df_auto[col_obs].astype(str).str.strip().str.upper()
                     
                     basura = ['', 'NAN', 'NAT', 'NONE', 'NULL', '<NA>', 'N/A', 'NA', '-', '0', 'SIN REGISTRO WFM', 'SIN REGISTRO']
                     df_obs_auto = df_auto[~df_auto[col_obs].isin(basura)]
@@ -645,10 +652,10 @@ try:
                     
                     if total_auto > 0:
                         st.markdown(f"""
-    <div style="background-color: #ffffff; padding: 20px; border-radius: 12px; border-left: 8px solid #FF4B4B; margin-bottom: 30px; box-shadow: 2px 2px 10px rgba(0,0,0,0.05); animation: slideUp 0.5s ease-out forwards; opacity: 0;">
-    <p style="margin: 0; font-size: 18px; color: #555;">Total de observaciones válidas analizadas en Autogestión: <strong style="font-size: 24px; color: #111;">{total_auto}</strong></p>
-    </div>
-    """, unsafe_allow_html=True)
+                        <div style="background-color: #ffffff; padding: 20px; border-radius: 12px; border-left: 8px solid #FF4B4B; margin-bottom: 30px; box-shadow: 2px 2px 10px rgba(0,0,0,0.05); animation: slideUp 0.5s ease-out forwards; opacity: 0;">
+                        <p style="margin: 0; font-size: 18px; color: #555;">Total de observaciones válidas analizadas en Autogestión: <strong style="font-size: 24px; color: #111;">{total_auto}</strong></p>
+                        </div>
+                        """, unsafe_allow_html=True)
                         
                         condicion_venta = df_obs_auto[col_obs].str.contains('VENTA PREVIA', na=False, case=False)
                         cant_venta_previa = condicion_venta.sum()
@@ -686,9 +693,8 @@ try:
                         st.info("No hay observaciones válidas para mostrar en el canal Autogestión con motivo Duplicidad de Carga.")
                 else:
                     st.warning("No se encontraron las columnas necesarias en la hoja 'Cancel'.")
-
-        else:
-            st.error("No se encontraron las hojas 'Base 08' o 'Base 09' en el Excel para realizar la comparativa.")
+    else:
+        st.error("No se encontraron las hojas 'Base 08' o 'Base 09' en el Excel para realizar la comparativa.")
 
 except FileNotFoundError:
     st.error(f"⚠️ No se encontró el archivo '{ruta_excel}'. Asegúrate de subirlo a tu repositorio de GitHub en la misma carpeta que este script.")
