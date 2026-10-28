@@ -19,15 +19,25 @@ html, body, [class*="css"], [class*="st-"], p, h1, h2, h3 {
 }
 
 /* ========================================== */
-/* MENÚ LATERAL (RECTÁNGULOS EN VEZ DE CÍRCULOS) */
+/* MENÚ LATERAL (RECTÁNGULOS DEL MISMO TAMAÑO)*/
 /* ========================================== */
+
+/* Forzar que el contenedor principal del radio button ocupe el 100% y estire sus hijos */
+div[data-testid="stRadio"],
+div[data-testid="stRadio"] > div,
+div[data-testid="stRadio"] div[role="radiogroup"] {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important; /* Fuerza a todos los rectángulos a tener el mismo ancho */
+}
 
 /* 1. Ocultar el círculo nativo de Streamlit */
 div[data-testid="stRadio"] div[role="radiogroup"] label > div:first-child {
     display: none !important;
 }
 
-/* 2. Estilo base del rectángulo (fondo gris claro) */
+/* 2. Estilo base del rectángulo */
 div[data-testid="stRadio"] div[role="radiogroup"] label {
     background-color: #f8f9fa !important;
     border: 2px solid transparent !important;
@@ -36,6 +46,7 @@ div[data-testid="stRadio"] div[role="radiogroup"] label {
     margin-bottom: 5px !important;
     cursor: pointer !important;
     width: 100% !important;
+    box-sizing: border-box !important;
     transition: background-color 0.2s ease, border-color 0.2s ease !important;
 }
 
@@ -69,41 +80,51 @@ div[data-testid="stRadio"] div[role="radiogroup"] label:has(input:checked) p {
 /* CUSTOMIZACIÓN DEL BOTÓN DEL SIDEBAR (<< y >>) */
 /* ========================================== */
 
-/* Ocultar SOLO el icono SVG interno para no romper el clic del botón */
-[data-testid="stSidebarCollapseButton"] svg,
-[data-testid="stCollapsedControl"] svg {
+/* 1. Mantener el área de clic activa pero ocultar el texto/ícono original */
+[data-testid="stSidebarCollapseButton"],
+[data-testid="stCollapsedControl"] {
+    color: transparent !important; 
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 45px !important;
+    height: 45px !important;
+    z-index: 9999 !important;
+}
+
+/* 2. Ocultar el contenido real (el SVG o span que dice keyboard_double) */
+[data-testid="stSidebarCollapseButton"] > *,
+[data-testid="stCollapsedControl"] > * {
     display: none !important;
 }
 
-/* Botón de cerrar: inyectar << */
+/* 3. Inyectar << en el botón abierto */
 [data-testid="stSidebarCollapseButton"]::after {
     content: "<<" !important;
-    display: block !important;
-    font-family: 'Inter', sans-serif !important;
-    font-size: 22px !important;
-    font-weight: 900 !important;
     color: #666 !important;
-    letter-spacing: -2px; 
-    cursor: pointer !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 20px !important;
+    font-weight: 900 !important;
+    letter-spacing: -2px;
+    position: absolute !important;
 }
 
-/* Botón de abrir: inyectar >> */
+/* 4. Inyectar >> en el botón cerrado */
 [data-testid="stCollapsedControl"]::after {
     content: ">>" !important;
-    display: block !important;
-    font-family: 'Inter', sans-serif !important;
-    font-size: 22px !important;
-    font-weight: 900 !important;
     color: #666 !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 20px !important;
+    font-weight: 900 !important;
     letter-spacing: -2px;
-    background-color: white;
-    padding: 0px 8px;
-    border-radius: 6px;
-    box-shadow: 0px 2px 6px rgba(0,0,0,0.1);
-    cursor: pointer !important;
+    background-color: white !important;
+    padding: 6px 12px !important;
+    border-radius: 8px !important;
+    box-shadow: 0px 2px 8px rgba(0,0,0,0.15) !important;
+    position: absolute !important;
 }
 
-/* Efecto hover (rojo) al pasar el mouse */
+/* Hover de las flechitas */
 [data-testid="stSidebarCollapseButton"]:hover::after,
 [data-testid="stCollapsedControl"]:hover::after {
     color: #FF4B4B !important;
