@@ -213,28 +213,20 @@ try:
     col_canal, col_motivo, col_obs = 'CANAL', 'MOTIVO CANCELACION', 'OBS'
 
     with st.sidebar:
-        # Cabecera / Logo del Dashboard
-        st.markdown("""
-        <div style="text-align: center; padding: 10px 0 25px 0; border-bottom: 2px solid #f0f0f0; margin-bottom: 25px;">
-            <h1 style="color: #FF4B4B; font-weight: 900; font-size: 26px; margin: 0; letter-spacing: -1px;">
-                📊 FALLIDAS<br><span style="color: #111;">ANALYTICS</span>
-            </h1>
-            <p style="color: #888; font-size: 14px; margin: 5px 0 0 0; font-weight: 600;">Monitoreo Operativo</p>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown("<h2 style='text-align: center; color: #333; margin-bottom: 20px;'>Menú</h2>", unsafe_allow_html=True)
         
         seleccion = st.radio(
             "Navegación",
             [
-                "📈 1. KPIs Generales", 
-                "⚖️ 2. Comparativa Desvíos", 
-                "🗺️ 3. Regiones Críticas", 
-                "🏆 4. Top Canales", 
-                "📅 5. Evolución Mensual",
-                "❌ 6. Canceladas por Canal",
-                "🔍 7. Motivos Cancelación",
-                "🚪 8. Desiste del Servicio",
-                "📱 9. Autogestión"
+                "1. KPIs Generales", 
+                "2. Comparativa Desvíos", 
+                "3. Regiones Críticas", 
+                "4. Top Canales", 
+                "5. Evolución Mensual",
+                "6. Canceladas por Canal",
+                "7. Motivos Cancelación",
+                "8. Desiste del Servicio",
+                "9. Autogestión"
             ],
             label_visibility="collapsed" 
         )
@@ -244,7 +236,7 @@ try:
         # ==========================================
         # DIAPOSITIVA 1: KPIs COMPARATIVOS 
         # ==========================================
-        if seleccion == "📈 1. KPIs Generales":
+        if seleccion == "1. KPIs Generales":
             mostrar_titulo_bloque("KPIs Generales y Comparativa")
             
             def contar_desvios(df, desvio_nombre):
@@ -307,7 +299,7 @@ try:
         # ==========================================
         # DIAPOSITIVA 2: GRÁFICO COMPARATIVO
         # ==========================================
-        elif seleccion == "⚖️ 2. Comparativa Desvíos":
+        elif seleccion == "2. Comparativa Desvíos":
             mostrar_titulo_bloque("Comparativa de Desvíos")
             
             df_08_agrupado = df_08[col_desvio].value_counts().reset_index()
@@ -341,7 +333,7 @@ try:
         # ==========================================
         # DIAPOSITIVA 3: TOP 3 REGIONES CON MAYOR % COMERCIAL 
         # ==========================================
-        elif seleccion == "🗺️ 3. Regiones Críticas":
+        elif seleccion == "3. Regiones Críticas":
             mostrar_titulo_bloque("Top 3 Regiones Críticas")
             
             if col_region in df_09.columns and col_desvio in df_09.columns:
@@ -405,7 +397,7 @@ try:
         # ==========================================
         # DIAPOSITIVA 4: TOP CANALES
         # ==========================================
-        elif seleccion == "🏆 4. Top Canales":
+        elif seleccion == "4. Top Canales":
             mostrar_titulo_bloque("Top Canales")
             
             if col_agente in df_09.columns and col_agente in df_08.columns:
@@ -454,7 +446,7 @@ try:
         # ==========================================
         # DIAPOSITIVA 5: EVOLUCIÓN MENSUAL
         # ==========================================
-        elif seleccion == "📅 5. Evolución Mensual":
+        elif seleccion == "5. Evolución Mensual":
             mostrar_titulo_bloque("Evolución Mensual de Fallidas")
             
             datos_progreso = []
@@ -519,7 +511,7 @@ try:
         # ==========================================
         # DIAPOSITIVA 6: ÓRDENES CANCELADAS POR CANAL
         # ==========================================
-        elif seleccion == "❌ 6. Canceladas por Canal":
+        elif seleccion == "6. Canceladas por Canal":
             mostrar_titulo_bloque("Análisis de Órdenes Canceladas por Canal")
             
             if df_cancel is not None:
@@ -560,7 +552,7 @@ try:
         # ==========================================
         # DIAPOSITIVA 7: MOTIVOS DE CANCELACIÓN (BARRAS VERTICALES)
         # ==========================================
-        elif seleccion == "🔍 7. Motivos Cancelación":
+        elif seleccion == "7. Motivos Cancelación":
             mostrar_titulo_bloque("Top Motivos de Cancelación")
             
             if df_cancel is not None:
@@ -608,7 +600,7 @@ try:
         # ==========================================
         # DIAPOSITIVA 8: CLIENTE DESISTE DEL SERVICIO
         # ==========================================
-        elif seleccion == "🚪 8. Desiste del Servicio":
+        elif seleccion == "8. Desiste del Servicio":
             mostrar_titulo_bloque("Detalle: Cliente Desiste del Servicio")
             
             if df_cancel is not None:
@@ -674,7 +666,7 @@ try:
         # ==========================================
         # DIAPOSITIVA 9: CANAL AUTOGESTIÓN 
         # ==========================================
-        elif seleccion == "📱 9. Autogestión":
+        elif seleccion == "9. Autogestión":
             mostrar_titulo_bloque("Detalle: Canal Autogestión (Duplicidad de Carga)")
             
             if df_cancel is not None:
