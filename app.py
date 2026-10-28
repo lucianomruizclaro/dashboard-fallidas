@@ -18,51 +18,49 @@ html, body, [class*="css"], [class*="st-"], p, h1, h2, h3 {
     font-family: 'Inter', sans-serif !important;
 }
 
-/* Ocultar el input nativo de radio */
-[data-testid="stSidebar"] div[role="radiogroup"] input[type="radio"] {
-    display: none;
-}
+/* ========================================== */
+/* MENÚ LATERAL (RECTÁNGULOS EN VEZ DE CÍRCULOS) */
+/* ========================================== */
 
-/* Ocultar SOLO el circulito del radio sin borrar el contenedor del texto */
-[data-testid="stSidebar"] div[role="radiogroup"] > label > div:first-child:not(:last-child) {
+/* 1. Ocultar el círculo nativo de Streamlit */
+div[data-testid="stRadio"] div[role="radiogroup"] label > div:first-child {
     display: none !important;
 }
 
-/* Estilo base para cada bloque del menú lateral (Rectángulos limpios) */
-[data-testid="stSidebar"] div[role="radiogroup"] > label {
+/* 2. Estilo base del rectángulo (fondo gris claro) */
+div[data-testid="stRadio"] div[role="radiogroup"] label {
     background-color: #f8f9fa !important;
     border: 2px solid transparent !important;
-    padding: 12px 15px !important;
-    border-radius: 4px !important; /* Forma más rectangular */
+    padding: 10px 15px !important;
+    border-radius: 6px !important;
     margin-bottom: 5px !important;
     cursor: pointer !important;
-    transition: background-color 0.2s ease, border-color 0.2s ease !important; /* Solo cambio de color suave */
-    display: flex !important;
     width: 100% !important;
+    transition: background-color 0.2s ease, border-color 0.2s ease !important;
 }
 
-/* Efecto Hover (Cambio de color al pasar el mouse) */
-[data-testid="stSidebar"] div[role="radiogroup"] > label:hover {
+/* 3. Efecto Hover (al pasar el mouse) */
+div[data-testid="stRadio"] div[role="radiogroup"] label:hover {
     background-color: #ffe8e8 !important;
     border-color: #FF4B4B !important;
 }
 
-/* Efecto Seleccionado (Fondo Rojo) */
-[data-testid="stSidebar"] div[role="radiogroup"] > label:has(input:checked) {
+/* 4. Efecto Seleccionado (Fondo Rojo) */
+div[data-testid="stRadio"] div[role="radiogroup"] label:has(input:checked) {
     background-color: #FF4B4B !important;
     border-color: #FF4B4B !important;
 }
 
-/* Color del texto BASE */
-[data-testid="stSidebar"] div[role="radiogroup"] > label p {
+/* 5. Color del texto BASE */
+div[data-testid="stRadio"] div[role="radiogroup"] label p {
     color: #444 !important;
     font-size: 16px !important;
     font-weight: 600 !important;
     margin: 0 !important;
 }
 
-/* Color del texto SELECCIONADO */
-[data-testid="stSidebar"] div[role="radiogroup"] > label:has(input:checked) p {
+/* 6. Color del texto SELECCIONADO (Blanco) */
+div[data-testid="stRadio"] div[role="radiogroup"] label:has(input:checked) p {
     color: white !important;
     font-weight: 900 !important;
 }
@@ -71,12 +69,14 @@ html, body, [class*="css"], [class*="st-"], p, h1, h2, h3 {
 /* CUSTOMIZACIÓN DEL BOTÓN DEL SIDEBAR (<< y >>) */
 /* ========================================== */
 
-[data-testid="stSidebarCollapseButton"] *,
-[data-testid="stCollapsedControl"] * {
+/* Ocultar SOLO el icono SVG interno para no romper el clic del botón */
+[data-testid="stSidebarCollapseButton"] svg,
+[data-testid="stCollapsedControl"] svg {
     display: none !important;
 }
 
-[data-testid="stSidebarCollapseButton"]::before {
+/* Botón de cerrar: inyectar << */
+[data-testid="stSidebarCollapseButton"]::after {
     content: "<<" !important;
     display: block !important;
     font-family: 'Inter', sans-serif !important;
@@ -84,9 +84,11 @@ html, body, [class*="css"], [class*="st-"], p, h1, h2, h3 {
     font-weight: 900 !important;
     color: #666 !important;
     letter-spacing: -2px; 
+    cursor: pointer !important;
 }
 
-[data-testid="stCollapsedControl"]::before {
+/* Botón de abrir: inyectar >> */
+[data-testid="stCollapsedControl"]::after {
     content: ">>" !important;
     display: block !important;
     font-family: 'Inter', sans-serif !important;
@@ -98,10 +100,12 @@ html, body, [class*="css"], [class*="st-"], p, h1, h2, h3 {
     padding: 0px 8px;
     border-radius: 6px;
     box-shadow: 0px 2px 6px rgba(0,0,0,0.1);
+    cursor: pointer !important;
 }
 
-[data-testid="stSidebarCollapseButton"]:hover::before,
-[data-testid="stCollapsedControl"]:hover::before {
+/* Efecto hover (rojo) al pasar el mouse */
+[data-testid="stSidebarCollapseButton"]:hover::after,
+[data-testid="stCollapsedControl"]:hover::after {
     color: #FF4B4B !important;
 }
 
