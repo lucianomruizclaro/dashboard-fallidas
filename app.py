@@ -20,6 +20,26 @@ html, body, [class*="css"], [class*="st-"], p, h1, h2, h3 {
 }
 
 /* ========================================== */
+/* MARCA BLANCA Y FONDO DE LA APP             */
+/* ========================================== */
+
+/* Ocultar header, menú superior y footer de Streamlit */
+header {display: none !important;}
+#MainMenu {display: none !important;}
+footer {display: none !important;}
+
+/* Darle un fondo gris perla a la aplicación para que resalten las tarjetas */
+.stApp {
+    background-color: #F4F7F6 !important;
+}
+
+/* Asegurar que el fondo del menú lateral sea completamente blanco para contrastar */
+[data-testid="stSidebar"] {
+    background-color: #ffffff !important;
+    border-right: 1px solid #e0e0e0 !important;
+}
+
+/* ========================================== */
 /* MENÚ LATERAL (RECTÁNGULOS DEL MISMO TAMAÑO)*/
 /* ========================================== */
 
@@ -60,7 +80,7 @@ div[data-testid="stRadio"] div[role="radiogroup"] label:has(input:checked) {
 
 div[data-testid="stRadio"] div[role="radiogroup"] label p {
     color: #444 !important;
-    font-size: 16px !important;
+    font-size: 15px !important;
     font-weight: 600 !important;
     margin: 0 !important;
 }
@@ -193,20 +213,28 @@ try:
     col_canal, col_motivo, col_obs = 'CANAL', 'MOTIVO CANCELACION', 'OBS'
 
     with st.sidebar:
-        st.markdown("<h2 style='text-align: center; color: #333; margin-bottom: 20px;'>Menú</h2>", unsafe_allow_html=True)
+        # Cabecera / Logo del Dashboard
+        st.markdown("""
+        <div style="text-align: center; padding: 10px 0 25px 0; border-bottom: 2px solid #f0f0f0; margin-bottom: 25px;">
+            <h1 style="color: #FF4B4B; font-weight: 900; font-size: 26px; margin: 0; letter-spacing: -1px;">
+                📊 FALLIDAS<br><span style="color: #111;">ANALYTICS</span>
+            </h1>
+            <p style="color: #888; font-size: 14px; margin: 5px 0 0 0; font-weight: 600;">Monitoreo Operativo</p>
+        </div>
+        """, unsafe_allow_html=True)
         
         seleccion = st.radio(
             "Navegación",
             [
-                "1. KPIs Generales", 
-                "2. Comparativa Desvíos", 
-                "3. Regiones Críticas", 
-                "4. Top Canales", 
-                "5. Evolución Mensual",
-                "6. Canceladas por Canal",
-                "7. Motivos Cancelación",
-                "8. Desiste del Servicio",
-                "9. Autogestión"
+                "📈 1. KPIs Generales", 
+                "⚖️ 2. Comparativa Desvíos", 
+                "🗺️ 3. Regiones Críticas", 
+                "🏆 4. Top Canales", 
+                "📅 5. Evolución Mensual",
+                "❌ 6. Canceladas por Canal",
+                "🔍 7. Motivos Cancelación",
+                "🚪 8. Desiste del Servicio",
+                "📱 9. Autogestión"
             ],
             label_visibility="collapsed" 
         )
@@ -216,7 +244,7 @@ try:
         # ==========================================
         # DIAPOSITIVA 1: KPIs COMPARATIVOS 
         # ==========================================
-        if seleccion == "1. KPIs Generales":
+        if seleccion == "📈 1. KPIs Generales":
             mostrar_titulo_bloque("KPIs Generales y Comparativa")
             
             def contar_desvios(df, desvio_nombre):
@@ -279,7 +307,7 @@ try:
         # ==========================================
         # DIAPOSITIVA 2: GRÁFICO COMPARATIVO
         # ==========================================
-        elif seleccion == "2. Comparativa Desvíos":
+        elif seleccion == "⚖️ 2. Comparativa Desvíos":
             mostrar_titulo_bloque("Comparativa de Desvíos")
             
             df_08_agrupado = df_08[col_desvio].value_counts().reset_index()
@@ -307,13 +335,13 @@ try:
             )
             
             st.markdown('<div style="background-color: white; padding: 20px; border-radius: 16px; box-shadow: 0px 4px 15px rgba(0,0,0,0.05); border: 1px solid #eee; animation: slideUpFade 0.7s ease-out 0.2s both;">', unsafe_allow_html=True)
-            st.plotly_chart(fig_comp, use_container_width=True)
+            st.plotly_chart(fig_comp, use_container_width=True, config={'displayModeBar': False})
             st.markdown('</div>', unsafe_allow_html=True)
 
         # ==========================================
         # DIAPOSITIVA 3: TOP 3 REGIONES CON MAYOR % COMERCIAL 
         # ==========================================
-        elif seleccion == "3. Regiones Críticas":
+        elif seleccion == "🗺️ 3. Regiones Críticas":
             mostrar_titulo_bloque("Top 3 Regiones Críticas")
             
             if col_region in df_09.columns and col_desvio in df_09.columns:
@@ -370,14 +398,14 @@ try:
                             margin=dict(l=0, r=10, t=30, b=0),
                             hoverlabel=dict(bgcolor="#ffffff", font_size=15, font_family="Inter", font_color="#333333", bordercolor="#EAEAEA")
                         )
-                        st.plotly_chart(fig_mini, use_container_width=True)
+                        st.plotly_chart(fig_mini, use_container_width=True, config={'displayModeBar': False})
             else:
                 st.warning("No se encontraron las columnas necesarias para el Top 3 de Regiones.")
 
         # ==========================================
         # DIAPOSITIVA 4: TOP CANALES
         # ==========================================
-        elif seleccion == "4. Top Canales":
+        elif seleccion == "🏆 4. Top Canales":
             mostrar_titulo_bloque("Top Canales")
             
             if col_agente in df_09.columns and col_agente in df_08.columns:
@@ -426,7 +454,7 @@ try:
         # ==========================================
         # DIAPOSITIVA 5: EVOLUCIÓN MENSUAL
         # ==========================================
-        elif seleccion == "5. Evolución Mensual":
+        elif seleccion == "📅 5. Evolución Mensual":
             mostrar_titulo_bloque("Evolución Mensual de Fallidas")
             
             datos_progreso = []
@@ -485,13 +513,13 @@ try:
                 )
                 
                 st.markdown('<div style="background-color: white; padding: 20px; border-radius: 16px; box-shadow: 0px 4px 15px rgba(0,0,0,0.05); border: 1px solid #eee; animation: slideUpFade 0.7s ease-out 0.2s both;">', unsafe_allow_html=True)
-                st.plotly_chart(fig_trend, use_container_width=True)
+                st.plotly_chart(fig_trend, use_container_width=True, config={'displayModeBar': False})
                 st.markdown('</div>', unsafe_allow_html=True)
 
         # ==========================================
         # DIAPOSITIVA 6: ÓRDENES CANCELADAS POR CANAL
         # ==========================================
-        elif seleccion == "6. Canceladas por Canal":
+        elif seleccion == "❌ 6. Canceladas por Canal":
             mostrar_titulo_bloque("Análisis de Órdenes Canceladas por Canal")
             
             if df_cancel is not None:
@@ -532,7 +560,7 @@ try:
         # ==========================================
         # DIAPOSITIVA 7: MOTIVOS DE CANCELACIÓN (BARRAS VERTICALES)
         # ==========================================
-        elif seleccion == "7. Motivos Cancelación":
+        elif seleccion == "🔍 7. Motivos Cancelación":
             mostrar_titulo_bloque("Top Motivos de Cancelación")
             
             if df_cancel is not None:
@@ -570,7 +598,7 @@ try:
                     )
                     
                     st.markdown('<div style="background-color: white; padding: 20px; border-radius: 16px; box-shadow: 0px 4px 15px rgba(0,0,0,0.05); border: 1px solid #eee; animation: slideUpFade 0.7s ease-out 0.2s both;">', unsafe_allow_html=True)
-                    st.plotly_chart(fig_motivos, use_container_width=True)
+                    st.plotly_chart(fig_motivos, use_container_width=True, config={'displayModeBar': False})
                     st.markdown('</div>', unsafe_allow_html=True)
                 else:
                     st.warning("No se encontró la columna 'MOTIVO CANCELACION' en la hoja 'Cancel'.")
@@ -580,7 +608,7 @@ try:
         # ==========================================
         # DIAPOSITIVA 8: CLIENTE DESISTE DEL SERVICIO
         # ==========================================
-        elif seleccion == "8. Desiste del Servicio":
+        elif seleccion == "🚪 8. Desiste del Servicio":
             mostrar_titulo_bloque("Detalle: Cliente Desiste del Servicio")
             
             if df_cancel is not None:
@@ -634,7 +662,7 @@ try:
                         )
                         
                         st.markdown('<div style="background-color: white; padding: 20px; border-radius: 16px; box-shadow: 0px 4px 15px rgba(0,0,0,0.05); border: 1px solid #eee; animation: slideUpFade 0.7s ease-out 0.2s both;">', unsafe_allow_html=True)
-                        st.plotly_chart(fig_obs, use_container_width=True)
+                        st.plotly_chart(fig_obs, use_container_width=True, config={'displayModeBar': False})
                         st.markdown('</div>', unsafe_allow_html=True)
                     else:
                         st.info("No hay observaciones válidas para mostrar luego de excluir celdas vacías y 'SIN REGISTRO WFM'.")
@@ -646,7 +674,7 @@ try:
         # ==========================================
         # DIAPOSITIVA 9: CANAL AUTOGESTIÓN 
         # ==========================================
-        elif seleccion == "9. Autogestión":
+        elif seleccion == "📱 9. Autogestión":
             mostrar_titulo_bloque("Detalle: Canal Autogestión (Duplicidad de Carga)")
             
             if df_cancel is not None:
@@ -698,7 +726,7 @@ try:
                         fig_auto.update_traces(insidetextfont=dict(color='white'), outsidetextfont=dict(color='black'))
                         
                         st.markdown('<div style="background-color: white; padding: 20px; border-radius: 16px; box-shadow: 0px 4px 15px rgba(0,0,0,0.05); border: 1px solid #eee; animation: slideUpFade 0.7s ease-out 0.2s both;">', unsafe_allow_html=True)
-                        st.plotly_chart(fig_auto, use_container_width=True)
+                        st.plotly_chart(fig_auto, use_container_width=True, config={'displayModeBar': False})
                         st.markdown('</div>', unsafe_allow_html=True)
                     else:
                         st.info("No hay observaciones válidas para mostrar en el canal Autogestión con motivo Duplicidad de Carga.")
