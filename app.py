@@ -22,22 +22,19 @@ html, body, [class*="css"], [class*="st-"], p, h1, h2, h3 {
 /* MENÚ LATERAL (RECTÁNGULOS DEL MISMO TAMAÑO)*/
 /* ========================================== */
 
-/* Forzar que el contenedor principal del radio button ocupe el 100% y estire sus hijos */
 div[data-testid="stRadio"],
 div[data-testid="stRadio"] > div,
 div[data-testid="stRadio"] div[role="radiogroup"] {
     width: 100% !important;
     display: flex !important;
     flex-direction: column !important;
-    align-items: stretch !important; /* Fuerza a todos los rectángulos a tener el mismo ancho */
+    align-items: stretch !important;
 }
 
-/* 1. Ocultar el círculo nativo de Streamlit */
 div[data-testid="stRadio"] div[role="radiogroup"] label > div:first-child {
     display: none !important;
 }
 
-/* 2. Estilo base del rectángulo */
 div[data-testid="stRadio"] div[role="radiogroup"] label {
     background-color: #f8f9fa !important;
     border: 2px solid transparent !important;
@@ -50,19 +47,16 @@ div[data-testid="stRadio"] div[role="radiogroup"] label {
     transition: background-color 0.2s ease, border-color 0.2s ease !important;
 }
 
-/* 3. Efecto Hover (al pasar el mouse) */
 div[data-testid="stRadio"] div[role="radiogroup"] label:hover {
     background-color: #ffe8e8 !important;
     border-color: #FF4B4B !important;
 }
 
-/* 4. Efecto Seleccionado (Fondo Rojo) */
 div[data-testid="stRadio"] div[role="radiogroup"] label:has(input:checked) {
     background-color: #FF4B4B !important;
     border-color: #FF4B4B !important;
 }
 
-/* 5. Color del texto BASE */
 div[data-testid="stRadio"] div[role="radiogroup"] label p {
     color: #444 !important;
     font-size: 16px !important;
@@ -70,83 +64,81 @@ div[data-testid="stRadio"] div[role="radiogroup"] label p {
     margin: 0 !important;
 }
 
-/* 6. Color del texto SELECCIONADO (Blanco) */
 div[data-testid="stRadio"] div[role="radiogroup"] label:has(input:checked) p {
     color: white !important;
     font-weight: 900 !important;
 }
 
 /* ========================================== */
-/* CUSTOMIZACIÓN DEL BOTÓN DEL SIDEBAR (<< y >>) */
+/* BOTÓN DE COLAPSAR SIDEBAR (FLECHAS ◀ y ▶) */
 /* ========================================== */
 
-/* 1. Mantener el área de clic activa pero ocultar el texto/ícono original */
 [data-testid="stSidebarCollapseButton"],
 [data-testid="stCollapsedControl"] {
-    color: transparent !important; 
+    width: 40px !important;
+    height: 40px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    width: 45px !important;
-    height: 45px !important;
-    z-index: 9999 !important;
+    font-size: 0px !important; 
+    color: transparent !important;
+    cursor: pointer !important;
 }
 
-/* 2. Ocultar el contenido real (el SVG o span que dice keyboard_double) */
-[data-testid="stSidebarCollapseButton"] > *,
-[data-testid="stCollapsedControl"] > * {
+[data-testid="stSidebarCollapseButton"] svg,
+[data-testid="stCollapsedControl"] svg {
     display: none !important;
 }
 
-/* 3. Inyectar << en el botón abierto */
 [data-testid="stSidebarCollapseButton"]::after {
-    content: "<<" !important;
-    color: #666 !important;
-    font-family: 'Inter', sans-serif !important;
-    font-size: 20px !important;
-    font-weight: 900 !important;
-    letter-spacing: -2px;
-    position: absolute !important;
+    content: "◀" !important;
+    font-size: 22px !important;
+    color: #888 !important;
+    display: block !important;
+    transition: color 0.2s;
 }
 
-/* 4. Inyectar >> en el botón cerrado */
 [data-testid="stCollapsedControl"]::after {
-    content: ">>" !important;
-    color: #666 !important;
-    font-family: 'Inter', sans-serif !important;
-    font-size: 20px !important;
-    font-weight: 900 !important;
-    letter-spacing: -2px;
+    content: "▶" !important;
+    font-size: 22px !important;
+    color: #888 !important;
+    display: block !important;
     background-color: white !important;
-    padding: 6px 12px !important;
-    border-radius: 8px !important;
-    box-shadow: 0px 2px 8px rgba(0,0,0,0.15) !important;
-    position: absolute !important;
+    padding: 4px 8px !important;
+    border-radius: 6px !important;
+    box-shadow: 0px 2px 6px rgba(0,0,0,0.15) !important;
+    transition: color 0.2s;
 }
 
-/* Hover de las flechitas */
 [data-testid="stSidebarCollapseButton"]:hover::after,
 [data-testid="stCollapsedControl"]:hover::after {
     color: #FF4B4B !important;
 }
 
 /* ========================================== */
-/* ANIMACIONES DE ENTRADA GRÁFICOS            */
+/* ANIMACIONES DE ENTRADA (CSS PURO, 0 LAG)   */
 /* ========================================== */
 
+/* Animación para los gráficos de Plotly */
 [data-testid="stPlotlyChart"] {
     transform-origin: bottom center !important;
-    animation: chartGrow 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.1) forwards !important;
-    opacity: 0;
+    animation: chartGrow 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.1) 0.3s both !important;
 }
+
 @keyframes chartGrow {
-    0% { transform: translateY(20px) scaleY(0.8); opacity: 0; }
+    0% { transform: translateY(30px) scaleY(0.9); opacity: 0; }
     100% { transform: translateY(0) scaleY(1); opacity: 1; }
 }
 
-@keyframes slideUp {
-    0% { transform: translateY(20px); opacity: 0; }
+@keyframes slideUpFade {
+    0% { transform: translateY(30px); opacity: 0; }
     100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes numberPop {
+    0% { transform: scale(0.5) translateY(15px); opacity: 0; color: #ffcccc; }
+    80% { transform: scale(1.05) translateY(-2px); opacity: 1; }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
 }
 </style>
 """, unsafe_allow_html=True)
@@ -156,7 +148,7 @@ div[data-testid="stRadio"] div[role="radiogroup"] label:has(input:checked) p {
 # ==========================================
 def mostrar_titulo_bloque(titulo):
     st.markdown(f"""
-    <div style="background: linear-gradient(135deg, #FF4B4B, #e63946); padding: 18px 25px; border-radius: 12px; text-align: center; margin-bottom: 30px; box-shadow: 0px 6px 15px rgba(255, 75, 75, 0.25); animation: slideUp 0.4s ease-out forwards; opacity: 0;">
+    <div style="background: linear-gradient(135deg, #FF4B4B, #e63946); padding: 18px 25px; border-radius: 12px; text-align: center; margin-bottom: 30px; box-shadow: 0px 6px 15px rgba(255, 75, 75, 0.25); animation: slideUpFade 0.5s ease-out both;">
         <h2 style="color: white; margin: 0; font-size: 32px; font-weight: 900; letter-spacing: 1px; text-transform: uppercase;">{titulo}</h2>
     </div>
     """, unsafe_allow_html=True)
@@ -230,14 +222,11 @@ def cargar_y_limpiar_datos(ruta):
 ruta_excel = 'Fallidas 082026 Arg.xlsx'
 
 try:
-    # 1. Cargar datos 
     nombres_hojas, mapa_meses, meses_ordenados, df_08, df_09, df_cancel = cargar_y_limpiar_datos(ruta_excel)
     
-    # Nombres de columnas estáticos 
     col_desvio, col_region, col_agente = 'DESVIO', 'REGION', 'GROUP_COMER'
     col_canal, col_motivo, col_obs = 'CANAL', 'MOTIVO CANCELACION', 'OBS'
 
-    # 2. Configurar el menú lateral
     with st.sidebar:
         st.markdown("<h2 style='text-align: center; color: #333; margin-bottom: 20px;'>Menú</h2>", unsafe_allow_html=True)
         
@@ -257,7 +246,6 @@ try:
             label_visibility="collapsed" 
         )
 
-    # 3. Renderizar vistas si los dataframes principales existen
     if df_08 is not None and df_09 is not None:
         
         # ==========================================
@@ -283,17 +271,12 @@ try:
 
             motivos_ordenados = sorted(motivos, key=lambda m: counts_09[m], reverse=True)
 
-            def crear_tarjeta_kpi(titulo, valor_actual, valor_anterior=None, es_total=False):
+            # Agregamos el parámetro 'delay' para el efecto cascada
+            def crear_tarjeta_kpi(titulo, valor_actual, valor_anterior=None, es_total=False, delay=0.0):
                 if es_total:
-                    color_borde_top = "#343a40"  
-                    color_fondo = "#ffffff"      
-                    color_borde = "#e0e0e0"
-                    color_numero = "#111111"
+                    color_borde_top, color_fondo, color_borde, color_numero = "#343a40", "#ffffff", "#e0e0e0", "#111111"
                 else:
-                    color_borde_top = "#FF4B4B"  
-                    color_fondo = "#ffffff"      
-                    color_borde = "#f5c6c6"
-                    color_numero = "#FF4B4B"
+                    color_borde_top, color_fondo, color_borde, color_numero = "#FF4B4B", "#ffffff", "#f5c6c6", "#FF4B4B"
 
                 if valor_anterior is not None:
                     delta_pct = 0 if valor_anterior == 0 else ((valor_actual - valor_anterior) / valor_anterior) * 100
@@ -307,19 +290,19 @@ try:
                     bloque_vs = f'<div style="visibility: hidden; background-color: transparent; border-radius: 8px; padding: 10px; border: 1px solid transparent; margin-top: 15px;"><span style="font-size: 22px; font-weight: bold;">➖ 0.0%</span> <span style="font-size: 18px;">vs Agosto</span></div>'
 
                 return f"""
-                <div style="background-color: {color_fondo}; padding: 30px; border-radius: 16px; text-align: center; border: 1px solid {color_borde}; border-top: 12px solid {color_borde_top}; box-shadow: 4px 4px 15px rgba(0,0,0,0.05); height: 100%; animation: slideUp 0.5s ease-out forwards; opacity: 0;">
-                <p style="margin: 0; font-size: 20px; color: #555; font-weight: bold; text-transform: uppercase;">{titulo}</p>
-                <p style="margin: 10px 0 0 0; font-size: 60px; color: {color_numero}; font-weight: 900;">{valor_actual}</p>
-                {bloque_vs}
+                <div style="background-color: {color_fondo}; padding: 30px; border-radius: 16px; text-align: center; border: 1px solid {color_borde}; border-top: 12px solid {color_borde_top}; box-shadow: 4px 4px 15px rgba(0,0,0,0.05); height: 100%; animation: slideUpFade 0.6s ease-out {delay}s both;">
+                    <p style="margin: 0; font-size: 20px; color: #555; font-weight: bold; text-transform: uppercase;">{titulo}</p>
+                    <p style="margin: 10px 0 0 0; font-size: 60px; color: {color_numero}; font-weight: 900; animation: numberPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.2) {delay + 0.15}s both;">{valor_actual}</p>
+                    {bloque_vs}
                 </div>
                 """
 
             row1 = st.columns(4)
-            with row1[0]: st.markdown(crear_tarjeta_kpi("Total Agosto", total_08, es_total=True), unsafe_allow_html=True)
-            with row1[1]: st.markdown(crear_tarjeta_kpi("Total Sept", total_09, total_08, es_total=True), unsafe_allow_html=True)
+            with row1[0]: st.markdown(crear_tarjeta_kpi("Total Agosto", total_08, es_total=True, delay=0.1), unsafe_allow_html=True)
+            with row1[1]: st.markdown(crear_tarjeta_kpi("Total Sept", total_09, total_08, es_total=True, delay=0.2), unsafe_allow_html=True)
             m1, m2 = motivos_ordenados[0], motivos_ordenados[1]
-            with row1[2]: st.markdown(crear_tarjeta_kpi(nombres_display[m1], counts_09[m1], counts_08[m1]), unsafe_allow_html=True)
-            with row1[3]: st.markdown(crear_tarjeta_kpi(nombres_display[m2], counts_09[m2], counts_08[m2]), unsafe_allow_html=True)
+            with row1[2]: st.markdown(crear_tarjeta_kpi(nombres_display[m1], counts_09[m1], counts_08[m1], delay=0.3), unsafe_allow_html=True)
+            with row1[3]: st.markdown(crear_tarjeta_kpi(nombres_display[m2], counts_09[m2], counts_08[m2], delay=0.4), unsafe_allow_html=True)
 
             st.write("<br>", unsafe_allow_html=True)
 
@@ -327,7 +310,7 @@ try:
             for i in range(5):
                 m = motivos_ordenados[i + 2] 
                 with row2[i]: 
-                    st.markdown(crear_tarjeta_kpi(nombres_display[m], counts_09[m], counts_08[m]), unsafe_allow_html=True)
+                    st.markdown(crear_tarjeta_kpi(nombres_display[m], counts_09[m], counts_08[m], delay=0.5 + (i*0.1)), unsafe_allow_html=True)
 
         # ==========================================
         # DIAPOSITIVA 2: GRÁFICO COMPARATIVO
@@ -359,7 +342,7 @@ try:
                 hoverlabel=dict(bgcolor="#ffffff", font_size=15, font_family="Inter", font_color="#333333", bordercolor="#EAEAEA")
             )
             
-            st.markdown('<div style="background-color: white; padding: 20px; border-radius: 16px; box-shadow: 0px 4px 15px rgba(0,0,0,0.05); border: 1px solid #eee;">', unsafe_allow_html=True)
+            st.markdown('<div style="background-color: white; padding: 20px; border-radius: 16px; box-shadow: 0px 4px 15px rgba(0,0,0,0.05); border: 1px solid #eee; animation: slideUpFade 0.7s ease-out 0.2s both;">', unsafe_allow_html=True)
             st.plotly_chart(fig_comp, use_container_width=True)
             st.markdown('</div>', unsafe_allow_html=True)
 
@@ -381,6 +364,7 @@ try:
                 colores_top = ['#FF4B4B', '#fd7e14', '#ffc107'] 
                 
                 for i, (region, pct_comercial) in enumerate(top_3_regiones.items()):
+                    delay = (i + 1) * 0.2
                     cantidad_total = totales_por_region[region]
                     df_region = df_09[df_09[col_region] == region]
                     df_motivos_region = df_region[col_desvio].value_counts().reset_index()
@@ -396,14 +380,14 @@ try:
                     if len(colores_barras) > 0: colores_barras[-1] = colores_top[i] 
                     
                     html_region = f"""
-                    <div style="border-top: 12px solid {colores_top[i]}; padding: 30px 20px; background-color: #ffffff; border-radius: 0 0 12px 12px; box-shadow: 2px 2px 10px rgba(0,0,0,0.05); animation: slideUp 0.5s ease-out forwards; opacity: 0;">
-                    <h2 style="margin-bottom: 10px; color: #111; font-size: 38px; font-weight: 900; text-align: center;">#{i+1} {region}</h2>
-                    <p style="font-size: 20px; color: #666; margin-top: 5px; margin-bottom: 0px; text-align: center;">
-                    Desvío Comercial: <strong style="color: {colores_top[i]}; font-size: 34px;">{pct_comercial:.1f}%</strong>
-                    </p>
-                    <p style="font-size: 18px; color: #888; margin-top: 5px; text-align: center;">
-                    Total fallidas en región: <strong>{cantidad_total}</strong>
-                    </p>
+                    <div style="border-top: 12px solid {colores_top[i]}; padding: 30px 20px; background-color: #ffffff; border-radius: 0 0 12px 12px; box-shadow: 2px 2px 10px rgba(0,0,0,0.05); animation: slideUpFade 0.6s ease-out {delay}s both;">
+                        <h2 style="margin-bottom: 10px; color: #111; font-size: 38px; font-weight: 900; text-align: center;">#{i+1} {region}</h2>
+                        <p style="font-size: 20px; color: #666; margin-top: 5px; margin-bottom: 0px; text-align: center;">
+                            Desvío Comercial: <strong style="color: {colores_top[i]}; font-size: 34px; animation: numberPop 0.5s ease-out {delay + 0.2}s both; display: inline-block;">{pct_comercial:.1f}%</strong>
+                        </p>
+                        <p style="font-size: 18px; color: #888; margin-top: 5px; text-align: center;">
+                            Total fallidas en región: <strong>{cantidad_total}</strong>
+                        </p>
                     </div>
                     """
                     with cols_top[i]:
@@ -440,6 +424,7 @@ try:
                 colores_alerta = ['#FF4B4B', '#fd7e14', '#ffc107'] 
                 
                 for i, (agente, cantidad_09) in enumerate(top_3_agentes.items()):
+                    delay = (i + 1) * 0.2
                     cantidad_08 = agentes_08.get(agente, 0)
                     if cantidad_08 == 0:
                         html_delta = '<span style="color: #FF4B4B; font-size: 22px; font-weight: bold;">🔺 N/A (No tuvo fallidas en Agosto)</span>'
@@ -451,22 +436,22 @@ try:
                         html_delta = f'<span style="color: {color_delta}; font-size: 24px; font-weight: bold;">{flecha} {abs(delta_pct):.1f}%</span> <span style="font-size: 20px;">vs Agosto</span>'
 
                     html_tarjeta = f"""
-                    <div style="background-color: #ffffff; padding: 40px; border-radius: 16px; text-align: center; border: 1px solid #eee; border-top: 12px solid {colores_alerta[i]}; box-shadow: 4px 4px 15px rgba(0,0,0,0.05); height: 100%; animation: slideUp 0.5s ease-out forwards; opacity: 0;">
-                    <p style="margin: 0; font-size: 40px; color: {colores_alerta[i]}; font-weight: 900;">#{i+1}</p>
-                    <h3 style="margin: 10px 0 20px 0; color: #111; font-size: 32px; font-weight: 900;">{agente}</h3>
-                    <div style="display: flex; justify-content: center; gap: 40px; margin-bottom: 20px;">
-                    <div>
-                    <p style="margin: 0; font-size: 20px; color: #666;">Septiembre</p>
-                    <p style="margin: 0; font-size: 50px; font-weight: 900; color: #FF4B4B;">{cantidad_09}</p>
-                    </div>
-                    <div style="border-left: 2px solid #ddd; padding-left: 40px;">
-                    <p style="margin: 0; font-size: 20px; color: #666;">Agosto</p>
-                    <p style="margin: 0; font-size: 38px; font-weight: 600; color: #555;">{cantidad_08}</p>
-                    </div>
-                    </div>
-                    <div style="background-color: #f8f9fa; border-radius: 8px; padding: 15px; border: 1px solid #eee;">
-                    {html_delta}
-                    </div>
+                    <div style="background-color: #ffffff; padding: 40px; border-radius: 16px; text-align: center; border: 1px solid #eee; border-top: 12px solid {colores_alerta[i]}; box-shadow: 4px 4px 15px rgba(0,0,0,0.05); height: 100%; animation: slideUpFade 0.6s ease-out {delay}s both;">
+                        <p style="margin: 0; font-size: 40px; color: {colores_alerta[i]}; font-weight: 900;">#{i+1}</p>
+                        <h3 style="margin: 10px 0 20px 0; color: #111; font-size: 32px; font-weight: 900;">{agente}</h3>
+                        <div style="display: flex; justify-content: center; gap: 40px; margin-bottom: 20px;">
+                            <div>
+                                <p style="margin: 0; font-size: 20px; color: #666;">Septiembre</p>
+                                <p style="margin: 0; font-size: 50px; font-weight: 900; color: #FF4B4B; animation: numberPop 0.5s ease-out {delay + 0.2}s both;">{cantidad_09}</p>
+                            </div>
+                            <div style="border-left: 2px solid #ddd; padding-left: 40px;">
+                                <p style="margin: 0; font-size: 20px; color: #666;">Agosto</p>
+                                <p style="margin: 0; font-size: 38px; font-weight: 600; color: #555; animation: numberPop 0.5s ease-out {delay + 0.3}s both;">{cantidad_08}</p>
+                            </div>
+                        </div>
+                        <div style="background-color: #f8f9fa; border-radius: 8px; padding: 15px; border: 1px solid #eee;">
+                            {html_delta}
+                        </div>
                     </div>
                     """
                     with cols_agentes[i]:
@@ -535,7 +520,7 @@ try:
                     hoverlabel=dict(bgcolor="#ffffff", font_size=15, font_family="Inter", font_color="#333333", bordercolor="#EAEAEA")
                 )
                 
-                st.markdown('<div style="background-color: white; padding: 20px; border-radius: 16px; box-shadow: 0px 4px 15px rgba(0,0,0,0.05); border: 1px solid #eee;">', unsafe_allow_html=True)
+                st.markdown('<div style="background-color: white; padding: 20px; border-radius: 16px; box-shadow: 0px 4px 15px rgba(0,0,0,0.05); border: 1px solid #eee; animation: slideUpFade 0.7s ease-out 0.2s both;">', unsafe_allow_html=True)
                 st.plotly_chart(fig_trend, use_container_width=True)
                 st.markdown('</div>', unsafe_allow_html=True)
 
@@ -554,21 +539,23 @@ try:
                     
                     with cols_canales[0]:
                         st.markdown(f"""
-                        <div style="background-color: #ffffff; padding: 25px; border-radius: 12px; text-align: center; border: 1px solid #e0e0e0; border-top: 8px solid #343a40; box-shadow: 2px 2px 10px rgba(0,0,0,0.05); height: 100%; margin-bottom: 20px; animation: slideUp 0.5s ease-out forwards; opacity: 0;">
-                        <h3 style="margin: 0 0 15px 0; color: #555; font-size: 20px; font-weight: bold; text-transform: uppercase;">Total</h3>
-                        <p style="margin: 0; font-size: 45px; color: #111; font-weight: 900;">{total_canceladas}</p>
-                        <p style="margin: 5px 0 0 0; font-size: 20px; color: #666; font-weight: bold;">12,37%</p>
+                        <div style="background-color: #ffffff; padding: 25px; border-radius: 12px; text-align: center; border: 1px solid #e0e0e0; border-top: 8px solid #343a40; box-shadow: 2px 2px 10px rgba(0,0,0,0.05); height: 100%; margin-bottom: 20px; animation: slideUpFade 0.6s ease-out 0.1s both;">
+                            <h3 style="margin: 0 0 15px 0; color: #555; font-size: 20px; font-weight: bold; text-transform: uppercase;">Total</h3>
+                            <p style="margin: 0; font-size: 45px; color: #111; font-weight: 900; animation: numberPop 0.5s ease-out 0.25s both;">{total_canceladas}</p>
+                            <p style="margin: 5px 0 0 0; font-size: 20px; color: #666; font-weight: bold;">12,37%</p>
                         </div>
                         """, unsafe_allow_html=True)
                     
                     for i, (canal, cantidad) in enumerate(canales_counts.items()):
                         col_idx = (i + 1) % columnas_por_fila 
                         pct_canal = (cantidad / total_canceladas) * 100
+                        delay = (i + 2) * 0.1
+                        
                         html_canal = f"""
-                        <div style="background-color: #ffffff; padding: 25px; border-radius: 12px; text-align: center; border: 1px solid #e0e0e0; border-top: 8px solid #FF4B4B; box-shadow: 2px 2px 10px rgba(0,0,0,0.05); height: 100%; margin-bottom: 20px; animation: slideUp 0.6s ease-out forwards; opacity: 0;">
-                        <h3 style="margin: 0 0 15px 0; color: #444; font-size: 20px; font-weight: bold;">{canal}</h3>
-                        <p style="margin: 0; font-size: 45px; color: #FF4B4B; font-weight: 900;">{cantidad}</p>
-                        <p style="margin: 5px 0 0 0; font-size: 16px; color: #888; font-weight: bold;">{pct_canal:.1f}%</p>
+                        <div style="background-color: #ffffff; padding: 25px; border-radius: 12px; text-align: center; border: 1px solid #e0e0e0; border-top: 8px solid #FF4B4B; box-shadow: 2px 2px 10px rgba(0,0,0,0.05); height: 100%; margin-bottom: 20px; animation: slideUpFade 0.6s ease-out {delay}s both;">
+                            <h3 style="margin: 0 0 15px 0; color: #444; font-size: 20px; font-weight: bold;">{canal}</h3>
+                            <p style="margin: 0; font-size: 45px; color: #FF4B4B; font-weight: 900; animation: numberPop 0.5s ease-out {delay + 0.15}s both;">{cantidad}</p>
+                            <p style="margin: 5px 0 0 0; font-size: 16px; color: #888; font-weight: bold;">{pct_canal:.1f}%</p>
                         </div>
                         """
                         with cols_canales[col_idx]:
@@ -618,7 +605,7 @@ try:
                         hoverlabel=dict(bgcolor="#ffffff", font_size=15, font_family="Inter", font_color="#333333", bordercolor="#EAEAEA")
                     )
                     
-                    st.markdown('<div style="background-color: white; padding: 20px; border-radius: 16px; box-shadow: 0px 4px 15px rgba(0,0,0,0.05); border: 1px solid #eee;">', unsafe_allow_html=True)
+                    st.markdown('<div style="background-color: white; padding: 20px; border-radius: 16px; box-shadow: 0px 4px 15px rgba(0,0,0,0.05); border: 1px solid #eee; animation: slideUpFade 0.7s ease-out 0.2s both;">', unsafe_allow_html=True)
                     st.plotly_chart(fig_motivos, use_container_width=True)
                     st.markdown('</div>', unsafe_allow_html=True)
                 else:
@@ -643,8 +630,8 @@ try:
                     
                     if total_validas > 0:
                         st.markdown(f"""
-                        <div style="background-color: #ffffff; padding: 20px; border-radius: 12px; border-left: 8px solid #FF4B4B; margin-bottom: 30px; box-shadow: 2px 2px 10px rgba(0,0,0,0.05); animation: slideUp 0.5s ease-out forwards; opacity: 0;">
-                        <p style="margin: 0; font-size: 18px; color: #555;">Total de observaciones válidas analizadas para "Cliente Desiste": <strong style="font-size: 24px; color: #111;">{total_validas}</strong></p>
+                        <div style="background-color: #ffffff; padding: 20px; border-radius: 12px; border-left: 8px solid #FF4B4B; margin-bottom: 30px; box-shadow: 2px 2px 10px rgba(0,0,0,0.05); animation: slideUpFade 0.5s ease-out both;">
+                        <p style="margin: 0; font-size: 18px; color: #555;">Total de observaciones válidas analizadas para "Cliente Desiste": <strong style="font-size: 24px; color: #111; animation: numberPop 0.5s ease-out 0.2s both; display: inline-block;">{total_validas}</strong></p>
                         </div>
                         """, unsafe_allow_html=True)
                         
@@ -682,7 +669,7 @@ try:
                             hoverlabel=dict(bgcolor="#ffffff", font_size=15, font_family="Inter", font_color="#333333", bordercolor="#EAEAEA")
                         )
                         
-                        st.markdown('<div style="background-color: white; padding: 20px; border-radius: 16px; box-shadow: 0px 4px 15px rgba(0,0,0,0.05); border: 1px solid #eee;">', unsafe_allow_html=True)
+                        st.markdown('<div style="background-color: white; padding: 20px; border-radius: 16px; box-shadow: 0px 4px 15px rgba(0,0,0,0.05); border: 1px solid #eee; animation: slideUpFade 0.7s ease-out 0.2s both;">', unsafe_allow_html=True)
                         st.plotly_chart(fig_obs, use_container_width=True)
                         st.markdown('</div>', unsafe_allow_html=True)
                     else:
@@ -712,8 +699,8 @@ try:
                     
                     if total_auto > 0:
                         st.markdown(f"""
-                        <div style="background-color: #ffffff; padding: 20px; border-radius: 12px; border-left: 8px solid #FF4B4B; margin-bottom: 30px; box-shadow: 2px 2px 10px rgba(0,0,0,0.05); animation: slideUp 0.5s ease-out forwards; opacity: 0;">
-                        <p style="margin: 0; font-size: 18px; color: #555;">Total de observaciones válidas analizadas en Autogestión: <strong style="font-size: 24px; color: #111;">{total_auto}</strong></p>
+                        <div style="background-color: #ffffff; padding: 20px; border-radius: 12px; border-left: 8px solid #FF4B4B; margin-bottom: 30px; box-shadow: 2px 2px 10px rgba(0,0,0,0.05); animation: slideUpFade 0.5s ease-out both;">
+                        <p style="margin: 0; font-size: 18px; color: #555;">Total de observaciones válidas analizadas en Autogestión: <strong style="font-size: 24px; color: #111; animation: numberPop 0.5s ease-out 0.2s both; display: inline-block;">{total_auto}</strong></p>
                         </div>
                         """, unsafe_allow_html=True)
                         
@@ -746,7 +733,7 @@ try:
                         )
                         fig_auto.update_traces(insidetextfont=dict(color='white'), outsidetextfont=dict(color='black'))
                         
-                        st.markdown('<div style="background-color: white; padding: 20px; border-radius: 16px; box-shadow: 0px 4px 15px rgba(0,0,0,0.05); border: 1px solid #eee;">', unsafe_allow_html=True)
+                        st.markdown('<div style="background-color: white; padding: 20px; border-radius: 16px; box-shadow: 0px 4px 15px rgba(0,0,0,0.05); border: 1px solid #eee; animation: slideUpFade 0.7s ease-out 0.2s both;">', unsafe_allow_html=True)
                         st.plotly_chart(fig_auto, use_container_width=True)
                         st.markdown('</div>', unsafe_allow_html=True)
                     else:
