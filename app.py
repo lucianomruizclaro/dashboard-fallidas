@@ -28,32 +28,29 @@ html, body, [class*="css"], [class*="st-"], p, h1, h2, h3 {
     display: none !important;
 }
 
-/* Estilo base para cada bloque del menú lateral */
+/* Estilo base para cada bloque del menú lateral (Rectángulos limpios) */
 [data-testid="stSidebar"] div[role="radiogroup"] > label {
     background-color: #f8f9fa !important;
-    border: 1px solid #eee !important;
+    border: 2px solid transparent !important;
     padding: 12px 15px !important;
-    border-radius: 10px !important;
-    margin-bottom: 8px !important;
+    border-radius: 4px !important; /* Forma más rectangular */
+    margin-bottom: 5px !important;
     cursor: pointer !important;
-    transition: all 0.3s ease-in-out !important;
+    transition: background-color 0.2s ease, border-color 0.2s ease !important; /* Solo cambio de color suave */
     display: flex !important;
     width: 100% !important;
 }
 
-/* Efecto Hover (mouse por encima) */
+/* Efecto Hover (Cambio de color al pasar el mouse) */
 [data-testid="stSidebar"] div[role="radiogroup"] > label:hover {
     background-color: #ffe8e8 !important;
     border-color: #FF4B4B !important;
-    transform: translateX(4px);
 }
 
-/* Efecto Seleccionado (Rectángulo Rojo) */
+/* Efecto Seleccionado (Fondo Rojo) */
 [data-testid="stSidebar"] div[role="radiogroup"] > label:has(input:checked) {
     background-color: #FF4B4B !important;
     border-color: #FF4B4B !important;
-    box-shadow: 0px 4px 12px rgba(255, 75, 75, 0.4) !important;
-    transform: scale(1.02);
 }
 
 /* Color del texto BASE */
@@ -71,7 +68,45 @@ html, body, [class*="css"], [class*="st-"], p, h1, h2, h3 {
 }
 
 /* ========================================== */
-/* ANIMACIONES DE ENTRADA (MAGIA VISUAL)      */
+/* CUSTOMIZACIÓN DEL BOTÓN DEL SIDEBAR (<< y >>) */
+/* ========================================== */
+
+[data-testid="stSidebarCollapseButton"] *,
+[data-testid="stCollapsedControl"] * {
+    display: none !important;
+}
+
+[data-testid="stSidebarCollapseButton"]::before {
+    content: "<<" !important;
+    display: block !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 22px !important;
+    font-weight: 900 !important;
+    color: #666 !important;
+    letter-spacing: -2px; 
+}
+
+[data-testid="stCollapsedControl"]::before {
+    content: ">>" !important;
+    display: block !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 22px !important;
+    font-weight: 900 !important;
+    color: #666 !important;
+    letter-spacing: -2px;
+    background-color: white;
+    padding: 0px 8px;
+    border-radius: 6px;
+    box-shadow: 0px 2px 6px rgba(0,0,0,0.1);
+}
+
+[data-testid="stSidebarCollapseButton"]:hover::before,
+[data-testid="stCollapsedControl"]:hover::before {
+    color: #FF4B4B !important;
+}
+
+/* ========================================== */
+/* ANIMACIONES DE ENTRADA GRÁFICOS            */
 /* ========================================== */
 
 [data-testid="stPlotlyChart"] {
@@ -170,16 +205,16 @@ def cargar_y_limpiar_datos(ruta):
 ruta_excel = 'Fallidas 082026 Arg.xlsx'
 
 try:
-    # 1. Cargar datos (Esto solo demorará la primera vez que se abre la app)
+    # 1. Cargar datos 
     nombres_hojas, mapa_meses, meses_ordenados, df_08, df_09, df_cancel = cargar_y_limpiar_datos(ruta_excel)
     
-    # Nombres de columnas estáticos usados en varias vistas
+    # Nombres de columnas estáticos 
     col_desvio, col_region, col_agente = 'DESVIO', 'REGION', 'GROUP_COMER'
     col_canal, col_motivo, col_obs = 'CANAL', 'MOTIVO CANCELACION', 'OBS'
 
     # 2. Configurar el menú lateral
     with st.sidebar:
-        st.markdown("<h2 style='text-align: center; color: #333; margin-bottom: 20px;'>Menú de Análisis</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='text-align: center; color: #333; margin-bottom: 20px;'>Menú</h2>", unsafe_allow_html=True)
         
         seleccion = st.radio(
             "Navegación",
@@ -187,7 +222,7 @@ try:
                 "1. KPIs Generales", 
                 "2. Comparativa Desvíos", 
                 "3. Regiones Críticas", 
-                "4. Top Agentes", 
+                "4. Top Canales", 
                 "5. Evolución Mensual",
                 "6. Canceladas por Canal",
                 "7. Motivos Cancelación",
@@ -367,10 +402,10 @@ try:
                 st.warning("No se encontraron las columnas necesarias para el Top 3 de Regiones.")
 
         # ==========================================
-        # DIAPOSITIVA 4: TOP 3 AGENTES
+        # DIAPOSITIVA 4: TOP CANALES
         # ==========================================
-        elif seleccion == "4. Top Agentes":
-            mostrar_titulo_bloque("Top Agentes")
+        elif seleccion == "4. Top Canales":
+            mostrar_titulo_bloque("Top Canales")
             
             if col_agente in df_09.columns and col_agente in df_08.columns:
                 agentes_09 = df_09[col_agente].value_counts()
