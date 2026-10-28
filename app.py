@@ -7,7 +7,8 @@ import re
 # ==========================================
 # CONFIGURACIÓN INICIAL
 # ==========================================
-st.set_page_config(page_title="Dashboard de Fallidas", layout="wide")
+# Forzamos a que el menú lateral inicie siempre abierto
+st.set_page_config(page_title="Dashboard de Fallidas", layout="wide", initial_sidebar_state="expanded")
 
 st.markdown("""
 <style>
@@ -70,49 +71,13 @@ div[data-testid="stRadio"] div[role="radiogroup"] label:has(input:checked) p {
 }
 
 /* ========================================== */
-/* BOTÓN DE COLAPSAR SIDEBAR (FLECHAS ◀ y ▶) */
+/* MENÚ FIJO (OCULTAR BOTONES DE COLAPSAR)    */
 /* ========================================== */
 
+/* Eliminamos por completo la opción de cerrar/abrir el menú */
 [data-testid="stSidebarCollapseButton"],
 [data-testid="stCollapsedControl"] {
-    width: 40px !important;
-    height: 40px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    font-size: 0px !important; 
-    color: transparent !important;
-    cursor: pointer !important;
-}
-
-[data-testid="stSidebarCollapseButton"] svg,
-[data-testid="stCollapsedControl"] svg {
     display: none !important;
-}
-
-[data-testid="stSidebarCollapseButton"]::after {
-    content: "◀" !important;
-    font-size: 22px !important;
-    color: #888 !important;
-    display: block !important;
-    transition: color 0.2s;
-}
-
-[data-testid="stCollapsedControl"]::after {
-    content: "▶" !important;
-    font-size: 22px !important;
-    color: #888 !important;
-    display: block !important;
-    background-color: white !important;
-    padding: 4px 8px !important;
-    border-radius: 6px !important;
-    box-shadow: 0px 2px 6px rgba(0,0,0,0.15) !important;
-    transition: color 0.2s;
-}
-
-[data-testid="stSidebarCollapseButton"]:hover::after,
-[data-testid="stCollapsedControl"]:hover::after {
-    color: #FF4B4B !important;
 }
 
 /* ========================================== */
@@ -271,7 +236,6 @@ try:
 
             motivos_ordenados = sorted(motivos, key=lambda m: counts_09[m], reverse=True)
 
-            # Agregamos el parámetro 'delay' para el efecto cascada
             def crear_tarjeta_kpi(titulo, valor_actual, valor_anterior=None, es_total=False, delay=0.0):
                 if es_total:
                     color_borde_top, color_fondo, color_borde, color_numero = "#343a40", "#ffffff", "#e0e0e0", "#111111"
