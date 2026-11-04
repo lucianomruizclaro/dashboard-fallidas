@@ -174,7 +174,7 @@ def cargar_y_limpiar_datos(ruta):
     col_region = 'REGION'
     col_agente = 'GROUP_COMER' 
 
-    if 'Base 08' in nombres_hojas and 'Base 09' in nombres_hojas:
+    if 'Base 09' in nombres_hojas and 'Base 10' in nombres_hojas:
         df_08 = pd.read_excel(xls, sheet_name='Base 08')
         df_09 = pd.read_excel(xls, sheet_name='Base 09')
         
