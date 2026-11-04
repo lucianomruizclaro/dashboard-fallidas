@@ -175,8 +175,8 @@ def cargar_y_limpiar_datos(ruta):
     col_agente = 'GROUP_COMER' 
 
     if 'Base 09' in nombres_hojas and 'Base 10' in nombres_hojas:
-        df_08 = pd.read_excel(xls, sheet_name='Base 08')
-        df_09 = pd.read_excel(xls, sheet_name='Base 09')
+        df_08 = pd.read_excel(xls, sheet_name='Base 09')
+        df_09 = pd.read_excel(xls, sheet_name='Base 10')
         
         for df in [df_08, df_09]:
             if col_desvio in df.columns:
