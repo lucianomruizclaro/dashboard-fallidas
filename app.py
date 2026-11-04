@@ -119,12 +119,19 @@ def cargar_y_limpiar_datos(ruta):
         df_actual = pd.read_excel(xls, sheet_name=nombre_hoja_actual)
         
         for df in [df_anterior, df_actual]:
+            # --- LIMPIEZA DE TÍTULOS A PRUEBA DE BALAS ---
+            df.columns = df.columns.astype(str).str.strip().str.upper()
+            df.rename(columns={'DESVIOS': 'DESVIO'}, inplace=True)
+            # ---------------------------------------------
+            
             for col in ['DESVIO', 'REGION', 'GROUP_COMER']:
                 if col in df.columns:
                     df[col] = df[col].astype(str).str.strip().str.upper()
 
     if 'Cancel' in nombres_hojas:
         df_cancel = pd.read_excel(xls, sheet_name='Cancel')
+        # Limpieza de títulos también para la hoja Cancel
+        df_cancel.columns = df_cancel.columns.astype(str).str.strip().str.upper()
         for col in ['CANAL', 'MOTIVO CANCELACION', 'OBS']:
             if col in df_cancel.columns: 
                 df_cancel[col] = df_cancel[col].astype(str).str.strip().str.upper()
@@ -134,7 +141,8 @@ def cargar_y_limpiar_datos(ruta):
 # ==========================================
 # LÓGICA PRINCIPAL Y MENÚ LATERAL
 # ==========================================
-ruta_excel = 'Fallidas 2026 Arg.xlsx'
+# ACORDATE DE ASEGURARTE QUE EL NOMBRE DEL EXCEL SEA EL CORRECTO
+ruta_excel = 'Fallidas 082026 Arg.xlsx'
 
 try:
     nombres_hojas, mapa_meses, meses_ordenados, df_anterior, df_actual, df_cancel, mes_anterior, mes_actual, hoja_ant, hoja_act = cargar_y_limpiar_datos(ruta_excel)
