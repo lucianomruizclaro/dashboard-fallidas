@@ -96,32 +96,43 @@ def cargar_y_limpiar_datos(ruta):
             if hoja not in meses_ordenados:
                 meses_ordenados.append(hoja)
 
-    # REEMPLAZO 1: Ajuste de variables a df_09 y df_10
-    df_09, df_10, df_cancel = None, None, None
-    col_desvio = 'DESVIO'
-    col_region = 'REGION'
-    col_agente = 'GROUP_COMER' 
-
-    # IMPORTANTE: Asegurate de que los nombres de abajo coincidan EXACTAMENTE con tu Excel
-    hoja_base_9 = 'Base 09' if 'Base 09' in nombres_hojas else 'Base 9'
-    hoja_base_10 = 'Base 10'
+    # Variables dinámicas
+    df_anterior, df_actual, df_cancel = None, None, None
+    mes_anterior_texto, mes_actual_texto = "Mes Anterior", "Mes Actual"
+    nombre_hoja_anterior, nombre_hoja_actual = "", ""
     
-    if hoja_base_9 in nombres_hojas and hoja_base_10 in nombres_hojas:
-        df_09 = pd.read_excel(xls, sheet_name=hoja_base_9)
-        df_10 = pd.read_excel(xls, sheet_name=hoja_base_10)
+    # 1. Buscar todas las hojas que sean "Base algo" y extraer su número
+    hojas_base = []
+    for hoja in nombres_hojas:
+        match = re.search(r'Base\s*0?(\d+)', hoja, re.IGNORECASE)
+        if match:
+            hojas_base.append((int(match.group(1)), hoja))
+            
+    # 2. Ordenar las hojas por número y agarrar las últimas dos
+    hojas_base.sort(key=lambda x: x[0])
+    
+    if len(hojas_base) >= 2:
+        num_anterior, nombre_hoja_anterior = hojas_base[-2]
+        num_actual, nombre_hoja_actual = hojas_base[-1]
         
-        for df in [df_09, df_10]:
-            if col_desvio in df.columns: df[col_desvio] = df[col_desvio].astype(str).str.strip().str.upper()
-            if col_region in df.columns: df[col_region] = df[col_region].astype(str).str.strip().str.upper()
-            if col_agente in df.columns: df[col_agente] = df[col_agente].astype(str).str.strip().str.upper()
+        mes_anterior_texto = nombres_meses.get(num_anterior, f"Mes {num_anterior}").capitalize()
+        mes_actual_texto = nombres_meses.get(num_actual, f"Mes {num_actual}").capitalize()
+        
+        df_anterior = pd.read_excel(xls, sheet_name=nombre_hoja_anterior)
+        df_actual = pd.read_excel(xls, sheet_name=nombre_hoja_actual)
+        
+        for df in [df_anterior, df_actual]:
+            for col in ['DESVIO', 'REGION', 'GROUP_COMER']:
+                if col in df.columns:
+                    df[col] = df[col].astype(str).str.strip().str.upper()
 
     if 'Cancel' in nombres_hojas:
         df_cancel = pd.read_excel(xls, sheet_name='Cancel')
-        if 'CANAL' in df_cancel.columns: df_cancel['CANAL'] = df_cancel['CANAL'].astype(str).str.strip().str.upper()
-        if 'MOTIVO CANCELACION' in df_cancel.columns: df_cancel['MOTIVO CANCELACION'] = df_cancel['MOTIVO CANCELACION'].astype(str).str.strip().str.upper()
-        if 'OBS' in df_cancel.columns: df_cancel['OBS'] = df_cancel['OBS'].astype(str).str.strip().str.upper()
+        for col in ['CANAL', 'MOTIVO CANCELACION', 'OBS']:
+            if col in df_cancel.columns: 
+                df_cancel[col] = df_cancel[col].astype(str).str.strip().str.upper()
 
-    return nombres_hojas, mapa_meses, meses_ordenados, df_09, df_10, df_cancel
+    return nombres_hojas, mapa_meses, meses_ordenados, df_anterior, df_actual, df_cancel, mes_anterior_texto, mes_actual_texto, nombre_hoja_anterior, nombre_hoja_actual
 
 # ==========================================
 # LÓGICA PRINCIPAL Y MENÚ LATERAL
@@ -129,7 +140,7 @@ def cargar_y_limpiar_datos(ruta):
 ruta_excel = 'Fallidas 082026 Arg.xlsx'
 
 try:
-    nombres_hojas, mapa_meses, meses_ordenados, df_09, df_10, df_cancel = cargar_y_limpiar_datos(ruta_excel)
+    nombres_hojas, mapa_meses, meses_ordenados, df_anterior, df_actual, df_cancel, mes_anterior, mes_actual, hoja_ant, hoja_act = cargar_y_limpiar_datos(ruta_excel)
     
     col_desvio, col_region, col_agente = 'DESVIO', 'REGION', 'GROUP_COMER'
     col_canal, col_motivo, col_obs = 'CANAL', 'MOTIVO CANCELACION', 'OBS'
@@ -138,62 +149,60 @@ try:
         st.markdown("<h2 style='text-align: center; color: #333; margin-bottom: 20px;'>Menú</h2>", unsafe_allow_html=True)
         seleccion = st.radio("Navegación", ["1. KPIs Generales", "2. Comparativa Desvíos", "3. Regiones Críticas", "4. Top Canales", "5. Evolución Mensual", "6. Canceladas por Canal", "7. Motivos Cancelación", "8. Desiste del Servicio", "9. Autogestión"], label_visibility="collapsed")
 
-    # REEMPLAZO 2: Variables correctas df_09 y df_10
-    if df_09 is not None and df_10 is not None:
+    if df_anterior is not None and df_actual is not None:
         
         # ==========================================
         # DIAPOSITIVA 1: KPIs COMPARATIVOS 
         # ==========================================
         if seleccion == "1. KPIs Generales":
-            mostrar_titulo_bloque("KPIs Generales y Comparativa")
+            mostrar_titulo_bloque(f"KPIs Generales ({mes_actual} vs {mes_anterior})")
             
             def contar_desvios(df, desvio_nombre): return (df[col_desvio] == desvio_nombre).sum()
 
-            total_10 = len(df_10)
-            total_09 = len(df_09)
+            total_actual = len(df_actual)
+            total_anterior = len(df_anterior)
 
             motivos = ['CLIENTE', 'CLIENTE AUSENTE', 'COMERCIAL', 'CONTRATISTA', 'REDES', 'SISTEMAS', 'ZONA PELIGROSA']
-            counts_09 = {m: contar_desvios(df_09, m) for m in motivos}
-            counts_10 = {m: contar_desvios(df_10, m) for m in motivos}
+            counts_anterior = {m: contar_desvios(df_anterior, m) for m in motivos}
+            counts_actual = {m: contar_desvios(df_actual, m) for m in motivos}
             nombres_display = {'CLIENTE': 'Cliente', 'CLIENTE AUSENTE': 'Ausente', 'COMERCIAL': 'Comercial', 'CONTRATISTA': 'Contratista', 'REDES': 'Redes', 'SISTEMAS': 'Sistemas', 'ZONA PELIGROSA': 'Z. Peligrosa'}
-            motivos_ordenados = sorted(motivos, key=lambda m: counts_10[m], reverse=True)
+            motivos_ordenados = sorted(motivos, key=lambda m: counts_actual[m], reverse=True)
 
-            def crear_tarjeta_kpi(titulo, valor_actual, valor_anterior=None, es_total=False, delay=0.0):
+            def crear_tarjeta_kpi(titulo, val_actual, val_anterior=None, es_total=False, delay=0.0):
                 if es_total: color_borde_top, color_fondo, color_borde, color_numero = "#343a40", "#ffffff", "#e0e0e0", "#111111"
                 else: color_borde_top, color_fondo, color_borde, color_numero = "#FF4B4B", "#ffffff", "#f5c6c6", "#FF4B4B"
 
-                if valor_anterior is not None:
-                    delta_pct = 0 if valor_anterior == 0 else ((valor_actual - valor_anterior) / valor_anterior) * 100
+                if val_anterior is not None:
+                    delta_pct = 0 if val_anterior == 0 else ((val_actual - val_anterior) / val_anterior) * 100
                     if delta_pct > 0: color_delta, flecha = "#FF4B4B", "🔺"
                     elif delta_pct < 0: color_delta, flecha = "#09AB3B", "🔻"
                     else: color_delta, flecha = "#888888", "➖"
                     
-                    # REEMPLAZO 3: Textos actualizados a Septiembre
-                    html_delta = f'<span style="color: {color_delta}; font-size: 22px; font-weight: bold;">{flecha} {abs(delta_pct):.1f}%</span> <span style="font-size: 18px; color: #666;">vs Septiembre</span>'
+                    html_delta = f'<span style="color: {color_delta}; font-size: 22px; font-weight: bold;">{flecha} {abs(delta_pct):.1f}%</span> <span style="font-size: 18px; color: #666;">vs {mes_anterior}</span>'
                     bloque_vs = f'<div style="background-color: #f8f9fa; border-radius: 8px; padding: 10px; border: 1px solid #eee; margin-top: 15px;">{html_delta}</div>'
                 else:
-                    bloque_vs = f'<div style="visibility: hidden; background-color: transparent; border-radius: 8px; padding: 10px; border: 1px solid transparent; margin-top: 15px;"><span style="font-size: 22px; font-weight: bold;">➖ 0.0%</span> <span style="font-size: 18px;">vs Septiembre</span></div>'
+                    bloque_vs = f'<div style="visibility: hidden; background-color: transparent; border-radius: 8px; padding: 10px; border: 1px solid transparent; margin-top: 15px;"><span style="font-size: 22px; font-weight: bold;">➖ 0.0%</span> <span style="font-size: 18px;">vs {mes_anterior}</span></div>'
 
                 return f"""
                 <div style="background-color: {color_fondo}; padding: 30px; border-radius: 16px; text-align: center; border: 1px solid {color_borde}; border-top: 12px solid {color_borde_top}; box-shadow: 4px 4px 15px rgba(0,0,0,0.05); height: 100%; animation: slideUpFade 0.6s ease-out {delay}s both;">
                     <p style="margin: 0; font-size: 20px; color: #555; font-weight: bold; text-transform: uppercase;">{titulo}</p>
-                    <p style="margin: 10px 0 0 0; font-size: 60px; color: {color_numero}; font-weight: 900; animation: numberPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.2) {delay + 0.15}s both;">{valor_actual}</p>
+                    <p style="margin: 10px 0 0 0; font-size: 60px; color: {color_numero}; font-weight: 900; animation: numberPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.2) {delay + 0.15}s both;">{val_actual}</p>
                     {bloque_vs}
                 </div>
                 """
 
             row1 = st.columns(4)
-            with row1[0]: st.markdown(crear_tarjeta_kpi("Total Sept", total_09, es_total=True, delay=0.1), unsafe_allow_html=True)
-            with row1[1]: st.markdown(crear_tarjeta_kpi("Total Oct", total_10, total_09, es_total=True, delay=0.2), unsafe_allow_html=True)
+            with row1[0]: st.markdown(crear_tarjeta_kpi(f"Total {mes_anterior[:3]}", total_anterior, es_total=True, delay=0.1), unsafe_allow_html=True)
+            with row1[1]: st.markdown(crear_tarjeta_kpi(f"Total {mes_actual[:3]}", total_actual, total_anterior, es_total=True, delay=0.2), unsafe_allow_html=True)
             m1, m2 = motivos_ordenados[0], motivos_ordenados[1]
-            with row1[2]: st.markdown(crear_tarjeta_kpi(nombres_display[m1], counts_10[m1], counts_09[m1], delay=0.3), unsafe_allow_html=True)
-            with row1[3]: st.markdown(crear_tarjeta_kpi(nombres_display[m2], counts_10[m2], counts_09[m2], delay=0.4), unsafe_allow_html=True)
+            with row1[2]: st.markdown(crear_tarjeta_kpi(nombres_display[m1], counts_actual[m1], counts_anterior[m1], delay=0.3), unsafe_allow_html=True)
+            with row1[3]: st.markdown(crear_tarjeta_kpi(nombres_display[m2], counts_actual[m2], counts_anterior[m2], delay=0.4), unsafe_allow_html=True)
 
             st.write("<br>", unsafe_allow_html=True)
             row2 = st.columns(5)
             for i in range(5):
                 m = motivos_ordenados[i + 2] 
-                with row2[i]: st.markdown(crear_tarjeta_kpi(nombres_display[m], counts_10[m], counts_09[m], delay=0.5 + (i*0.1)), unsafe_allow_html=True)
+                with row2[i]: st.markdown(crear_tarjeta_kpi(nombres_display[m], counts_actual[m], counts_anterior[m], delay=0.5 + (i*0.1)), unsafe_allow_html=True)
 
         # ==========================================
         # DIAPOSITIVA 2: GRÁFICO COMPARATIVO
@@ -201,15 +210,15 @@ try:
         elif seleccion == "2. Comparativa Desvíos":
             mostrar_titulo_bloque("Comparativa de Desvíos")
             
-            df_09_agrupado = df_09[col_desvio].value_counts().reset_index()
-            df_09_agrupado.columns = ['DESVIO', 'CANTIDAD']
-            df_09_agrupado['MES'] = 'Base 09 (Septiembre)'
+            df_anterior_agrupado = df_anterior[col_desvio].value_counts().reset_index()
+            df_anterior_agrupado.columns = ['DESVIO', 'CANTIDAD']
+            df_anterior_agrupado['MES'] = f'{hoja_ant} ({mes_anterior})'
             
-            df_10_agrupado = df_10[col_desvio].value_counts().reset_index()
-            df_10_agrupado.columns = ['DESVIO', 'CANTIDAD']
-            df_10_agrupado['MES'] = 'Base 10 (Octubre)'
+            df_actual_agrupado = df_actual[col_desvio].value_counts().reset_index()
+            df_actual_agrupado.columns = ['DESVIO', 'CANTIDAD']
+            df_actual_agrupado['MES'] = f'{hoja_act} ({mes_actual})'
             
-            df_comparativo = pd.concat([df_09_agrupado, df_10_agrupado])
+            df_comparativo = pd.concat([df_anterior_agrupado, df_actual_agrupado])
             df_comparativo['TEXTO_BARRA'] = df_comparativo['CANTIDAD'].apply(lambda x: f"<b>{x}</b>")
             
             fig_comp = px.bar(df_comparativo, x='DESVIO', y='CANTIDAD', color='MES', barmode='group', text='TEXTO_BARRA', color_discrete_sequence=['#adb5bd', '#FF4B4B'])
@@ -232,9 +241,9 @@ try:
         elif seleccion == "3. Regiones Críticas":
             mostrar_titulo_bloque("Top 3 Regiones Críticas")
             
-            if col_region in df_10.columns and col_desvio in df_10.columns:
-                totales_por_region = df_10[col_region].value_counts()
-                df_comercial = df_10[df_10[col_desvio] == 'COMERCIAL']
+            if col_region in df_actual.columns and col_desvio in df_actual.columns:
+                totales_por_region = df_actual[col_region].value_counts()
+                df_comercial = df_actual[df_actual[col_desvio] == 'COMERCIAL']
                 comerciales_por_region = df_comercial[col_region].value_counts()
                 
                 pct_comercial_region = (comerciales_por_region / totales_por_region * 100).fillna(0)
@@ -246,7 +255,7 @@ try:
                 for i, (region, pct_comercial) in enumerate(top_3_regiones.items()):
                     delay = (i + 1) * 0.2
                     cantidad_total = totales_por_region[region]
-                    df_region = df_10[df_10[col_region] == region]
+                    df_region = df_actual[df_actual[col_region] == region]
                     df_motivos_region = df_region[col_desvio].value_counts().reset_index()
                     df_motivos_region.columns = ['MOTIVO', 'CANTIDAD']
                     df_motivos_region['PORCENTAJE'] = (df_motivos_region['CANTIDAD'] / cantidad_total) * 100
@@ -291,24 +300,24 @@ try:
         elif seleccion == "4. Top Canales":
             mostrar_titulo_bloque("Top Canales")
             
-            if col_agente in df_10.columns and col_agente in df_09.columns:
-                agentes_10 = df_10[col_agente].value_counts()
-                agentes_09 = df_09[col_agente].value_counts()
-                top_3_agentes = agentes_10.nlargest(3)
+            if col_agente in df_actual.columns and col_agente in df_anterior.columns:
+                agentes_actual = df_actual[col_agente].value_counts()
+                agentes_anterior = df_anterior[col_agente].value_counts()
+                top_3_agentes = agentes_actual.nlargest(3)
                 cols_agentes = st.columns(3)
                 colores_alerta = ['#FF4B4B', '#fd7e14', '#ffc107'] 
                 
-                for i, (agente, cantidad_10) in enumerate(top_3_agentes.items()):
+                for i, (agente, cantidad_actual) in enumerate(top_3_agentes.items()):
                     delay = (i + 1) * 0.2
-                    cantidad_09 = agentes_09.get(agente, 0)
-                    if cantidad_09 == 0:
-                        html_delta = '<span style="color: #FF4B4B; font-size: 22px; font-weight: bold;">🔺 N/A (No tuvo fallidas en Septiembre)</span>'
+                    cantidad_anterior = agentes_anterior.get(agente, 0)
+                    if cantidad_anterior == 0:
+                        html_delta = f'<span style="color: #FF4B4B; font-size: 22px; font-weight: bold;">🔺 N/A (Sin fallidas en {mes_anterior})</span>'
                     else:
-                        delta_pct = ((cantidad_10 - cantidad_09) / cantidad_09) * 100
+                        delta_pct = ((cantidad_actual - cantidad_anterior) / cantidad_anterior) * 100
                         if delta_pct > 0: color_delta, flecha = "#FF4B4B", "🔺"
                         elif delta_pct < 0: color_delta, flecha = "#09AB3B", "🔻"
                         else: color_delta, flecha = "#888888", "➖"
-                        html_delta = f'<span style="color: {color_delta}; font-size: 24px; font-weight: bold;">{flecha} {abs(delta_pct):.1f}%</span> <span style="font-size: 20px;">vs Septiembre</span>'
+                        html_delta = f'<span style="color: {color_delta}; font-size: 24px; font-weight: bold;">{flecha} {abs(delta_pct):.1f}%</span> <span style="font-size: 20px;">vs {mes_anterior}</span>'
 
                     html_tarjeta = f"""
                     <div style="background-color: #ffffff; padding: 40px; border-radius: 16px; text-align: center; border: 1px solid #eee; border-top: 12px solid {colores_alerta[i]}; box-shadow: 4px 4px 15px rgba(0,0,0,0.05); height: 100%; animation: slideUpFade 0.6s ease-out {delay}s both;">
@@ -316,12 +325,12 @@ try:
                         <h3 style="margin: 10px 0 20px 0; color: #111; font-size: 32px; font-weight: 900;">{agente}</h3>
                         <div style="display: flex; justify-content: center; gap: 40px; margin-bottom: 20px;">
                             <div>
-                                <p style="margin: 0; font-size: 20px; color: #666;">Octubre</p>
-                                <p style="margin: 0; font-size: 50px; font-weight: 900; color: #FF4B4B; animation: numberPop 0.5s ease-out {delay + 0.2}s both;">{cantidad_10}</p>
+                                <p style="margin: 0; font-size: 20px; color: #666;">{mes_actual}</p>
+                                <p style="margin: 0; font-size: 50px; font-weight: 900; color: #FF4B4B; animation: numberPop 0.5s ease-out {delay + 0.2}s both;">{cantidad_actual}</p>
                             </div>
                             <div style="border-left: 2px solid #ddd; padding-left: 40px;">
-                                <p style="margin: 0; font-size: 20px; color: #666;">Septiembre</p>
-                                <p style="margin: 0; font-size: 38px; font-weight: 600; color: #555; animation: numberPop 0.5s ease-out {delay + 0.3}s both;">{cantidad_09}</p>
+                                <p style="margin: 0; font-size: 20px; color: #666;">{mes_anterior}</p>
+                                <p style="margin: 0; font-size: 38px; font-weight: 600; color: #555; animation: numberPop 0.5s ease-out {delay + 0.3}s both;">{cantidad_anterior}</p>
                             </div>
                         </div>
                         <div style="background-color: #f8f9fa; border-radius: 8px; padding: 15px; border: 1px solid #eee;">
@@ -336,7 +345,6 @@ try:
 
         # ==========================================
         # DIAPOSITIVAS 5, 6, 7, 8, 9 (EVOLUCIÓN Y CANCELADAS)
-        # (El resto de las hojas no dependían de la variable de mes cruzada, queda igual)
         # ==========================================
         elif seleccion == "5. Evolución Mensual":
             mostrar_titulo_bloque("Evolución Mensual de Fallidas")
@@ -355,17 +363,17 @@ try:
                 textos_html = [f"<span style='font-size:30px'><b>{df_progreso['Porcentaje'].iloc[0]:.2f}%</b></span><br><br><span style='font-size:22px'>Inicio</span><br>&nbsp;"]
 
                 for i in range(1, len(df_progreso)):
-                    pct_actual = df_progreso['Porcentaje'].iloc[i]
-                    delta = pct_actual - df_progreso['Porcentaje'].iloc[i-1]
+                    pct_act = df_progreso['Porcentaje'].iloc[i]
+                    delta = pct_act - df_progreso['Porcentaje'].iloc[i-1]
                     if delta < 0:
                         simbolos.append('triangle-down'); colores_marcadores.append('#09AB3B'); colores_texto.append('#09AB3B')
-                        textos_html.append(f"<span style='font-size:30px'><b>{pct_actual:.2f}%</b></span><br><br><span style='font-size:22px'>▼ {abs(delta):.2f}%</span><br>&nbsp;")
+                        textos_html.append(f"<span style='font-size:30px'><b>{pct_act:.2f}%</b></span><br><br><span style='font-size:22px'>▼ {abs(delta):.2f}%</span><br>&nbsp;")
                     elif delta > 0:
                         simbolos.append('triangle-up'); colores_marcadores.append('#FF4B4B'); colores_texto.append('#FF4B4B')
-                        textos_html.append(f"<span style='font-size:30px'><b>{pct_actual:.2f}%</b></span><br><br><span style='font-size:22px'>▲ {delta:.2f}%</span><br>&nbsp;")
+                        textos_html.append(f"<span style='font-size:30px'><b>{pct_act:.2f}%</b></span><br><br><span style='font-size:22px'>▲ {delta:.2f}%</span><br>&nbsp;")
                     else:
                         simbolos.append('circle'); colores_marcadores.append('#888888'); colores_texto.append('#555555')
-                        textos_html.append(f"<span style='font-size:30px'><b>{pct_actual:.2f}%</b></span><br><br><span style='font-size:22px'>➖ 0.00%</span><br>&nbsp;")
+                        textos_html.append(f"<span style='font-size:30px'><b>{pct_act:.2f}%</b></span><br><br><span style='font-size:22px'>➖ 0.00%</span><br>&nbsp;")
 
                 fig_trend = go.Figure()
                 fig_trend.add_trace(go.Scatter(x=df_progreso["Mes"], y=df_progreso["Porcentaje"], mode='lines', line=dict(color='#dee2e6', width=6, shape='spline'), fill='tozeroy', fillcolor='rgba(222, 226, 230, 0.2)', hoverinfo='skip', showlegend=False))
@@ -472,8 +480,7 @@ try:
                     else: st.info("No hay observaciones válidas para mostrar en el canal Autogestión con motivo Duplicidad de Carga.")
                 else: st.warning("No se encontraron las columnas necesarias en la hoja 'Cancel'.")
     else:
-        # REEMPLAZO 4: Error actualizado
-        st.error("No se encontraron las hojas 'Base 09' o 'Base 10' en el Excel para realizar la comparativa.")
+        st.error("No se encontraron suficientes hojas con el nombre 'Base' (se necesitan al menos dos) en el Excel para realizar la comparativa.")
 
 except FileNotFoundError:
     st.error(f"⚠️ No se encontró el archivo '{ruta_excel}'. Asegúrate de subirlo a tu repositorio de GitHub en la misma carpeta que este script.")
