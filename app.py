@@ -11,22 +11,20 @@ st.set_page_config(page_title="Dashboard de Fallidas", layout="wide", initial_si
 
 st.markdown("""
 <style>
-/* 1. TIPOGRAFÍA PREMIUM (GOOGLE FONTS) */
+/* TIPOGRAFÍA PREMIUM (GOOGLE FONTS) */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&display=swap');
 
 html, body, [class*="css"], [class*="st-"], p, h1, h2, h3 {
     font-family: 'Inter', sans-serif !important;
 }
 
-/* Ocultar header, menú superior y footer de Streamlit */
+/* Ocultar header y menú superior */
 header {display: none !important;}
 #MainMenu {display: none !important;}
 footer {display: none !important;}
 
-/* Fondo de la app */
+/* Fondos */
 .stApp { background-color: #F4F7F6 !important; }
-
-/* Fondo del menú lateral */
 [data-testid="stSidebar"] {
     background-color: #ffffff !important;
     border-right: 1px solid #e0e0e0 !important;
@@ -65,8 +63,6 @@ def mostrar_titulo_bloque(titulo):
     </div>
     """, unsafe_allow_html=True)
 
-st.title("Comparativa de Fallidas 2026") 
-
 # ==========================================
 # CACHÉ PARA LECTURA Y LIMPIEZA DE DATOS
 # ==========================================
@@ -96,7 +92,7 @@ def cargar_y_limpiar_datos(ruta):
             if hoja not in meses_ordenados:
                 meses_ordenados.append(hoja)
 
-    # Variables dinámicas
+    # LÓGICA DINÁMICA DE MESES
     df_anterior, df_actual, df_cancel = None, None, None
     mes_anterior_texto, mes_actual_texto = "Mes Anterior", "Mes Actual"
     nombre_hoja_anterior, nombre_hoja_actual = "", ""
@@ -115,6 +111,7 @@ def cargar_y_limpiar_datos(ruta):
         num_anterior, nombre_hoja_anterior = hojas_base[-2]
         num_actual, nombre_hoja_actual = hojas_base[-1]
         
+        # Traducción de números a texto de mes
         mes_anterior_texto = nombres_meses.get(num_anterior, f"Mes {num_anterior}").capitalize()
         mes_actual_texto = nombres_meses.get(num_actual, f"Mes {num_actual}").capitalize()
         
@@ -142,6 +139,9 @@ ruta_excel = 'Fallidas 082026 Arg.xlsx'
 try:
     nombres_hojas, mapa_meses, meses_ordenados, df_anterior, df_actual, df_cancel, mes_anterior, mes_actual, hoja_ant, hoja_act = cargar_y_limpiar_datos(ruta_excel)
     
+    # Título dinámico
+    st.title(f"Comparativa de Fallidas 2026 - {mes_actual}") 
+
     col_desvio, col_region, col_agente = 'DESVIO', 'REGION', 'GROUP_COMER'
     col_canal, col_motivo, col_obs = 'CANAL', 'MOTIVO CANCELACION', 'OBS'
 
@@ -344,12 +344,15 @@ try:
                 st.warning(f"No se encontró la columna '{col_agente}' en ambos meses para comparar.")
 
         # ==========================================
-        # DIAPOSITIVAS 5, 6, 7, 8, 9 (EVOLUCIÓN Y CANCELADAS)
+        # DIAPOSITIVAS RESTANTES
         # ==========================================
         elif seleccion == "5. Evolución Mensual":
             mostrar_titulo_bloque("Evolución Mensual de Fallidas")
             datos_progreso = []
-            porcentajes_fijos = {'ENERO': 14.69, 'FEBRERO': 15.45, 'MARZO': 15.10, 'ABRIL': 15.42, 'MAYO': 17.75, 'JUNIO': 15.37, 'JULIO': 14.91, 'AGOSTO': 12.58, 'SEPTIEMBRE': 12.88}
+            
+            # ACÁ ESTÁN LOS PORCENTAJES FIJOS CON OCTUBRE AGREGADO
+            porcentajes_fijos = {'ENERO': 14.69, 'FEBRERO': 15.45, 'MARZO': 15.10, 'ABRIL': 15.42, 'MAYO': 17.75, 'JUNIO': 15.37, 'JULIO': 14.91, 'AGOSTO': 12.58, 'SEPTIEMBRE': 12.88, 'OCTUBRE': 16.15}
+            
             for hoja in nombres_hojas:
                 nombre_mes = mapa_meses.get(hoja, hoja) 
                 if nombre_mes in porcentajes_fijos:
