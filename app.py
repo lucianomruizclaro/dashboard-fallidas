@@ -134,7 +134,7 @@ def cargar_y_limpiar_datos(ruta):
 # ==========================================
 # LÓGICA PRINCIPAL Y MENÚ LATERAL
 # ==========================================
-ruta_excel = 'Fallidas 082026 Arg.xlsx'
+ruta_excel = 'Fallidas 2026 Arg.xlsx'
 
 try:
     nombres_hojas, mapa_meses, meses_ordenados, df_anterior, df_actual, df_cancel, mes_anterior, mes_actual, hoja_ant, hoja_act = cargar_y_limpiar_datos(ruta_excel)
