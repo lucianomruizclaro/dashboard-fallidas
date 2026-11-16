@@ -508,3 +508,7 @@ except FileNotFoundError:
     st.error(f"⚠️ No se encontró el archivo '{ruta_excel}'. Asegúrate de subirlo a tu repositorio de GitHub en la misma carpeta que este script.")
 except Exception as e:
     st.error(f"Hubo un error al procesar el archivo: {e}")
+
+
+
+    
