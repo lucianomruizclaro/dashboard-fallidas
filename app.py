@@ -3,6 +3,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import re
+import os  # <-- LIBRERÍA AGREGADA PARA LEER FECHA DE ARCHIVOS
 
 # ==========================================
 # CONFIGURACIÓN INICIAL
@@ -67,7 +68,8 @@ def mostrar_titulo_bloque(titulo):
 # CACHÉ PARA LECTURA Y LIMPIEZA DE DATOS
 # ==========================================
 @st.cache_data
-def cargar_y_limpiar_datos(ruta):
+# <-- SEGUNDO PARÁMETRO AGREGADO ACÁ (ultima_modificacion)
+def cargar_y_limpiar_datos(ruta, ultima_modificacion):
     xls = pd.ExcelFile(ruta, engine='openpyxl')
     nombres_hojas = xls.sheet_names 
     
@@ -145,7 +147,9 @@ def cargar_y_limpiar_datos(ruta):
 ruta_excel = 'Fallidas 2026 Arg.xlsx'
 
 try:
-    nombres_hojas, mapa_meses, meses_ordenados, df_anterior, df_actual, df_cancel, mes_anterior, mes_actual, hoja_ant, hoja_act = cargar_y_limpiar_datos(ruta_excel)
+    # <-- ACÁ OBTENEMOS LA FECHA DE MODIFICACIÓN DEL EXCEL Y SE LA PASAMOS A LA FUNCIÓN
+    tiempo_modificacion = os.path.getmtime(ruta_excel)
+    nombres_hojas, mapa_meses, meses_ordenados, df_anterior, df_actual, df_cancel, mes_anterior, mes_actual, hoja_ant, hoja_act = cargar_y_limpiar_datos(ruta_excel, tiempo_modificacion)
     
     # Título dinámico
     st.title(f"Comparativa de Fallidas 2026 - {mes_actual}") 
