@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import re
-import os  # <-- LIBRERÍA AGREGADA PARA LEER FECHA DE ARCHIVOS
+import os
 
 # ==========================================
 # CONFIGURACIÓN INICIAL
@@ -68,7 +68,6 @@ def mostrar_titulo_bloque(titulo):
 # CACHÉ PARA LECTURA Y LIMPIEZA DE DATOS
 # ==========================================
 @st.cache_data
-# <-- SEGUNDO PARÁMETRO AGREGADO ACÁ (ultima_modificacion)
 def cargar_y_limpiar_datos(ruta, ultima_modificacion):
     xls = pd.ExcelFile(ruta, engine='openpyxl')
     nombres_hojas = xls.sheet_names 
@@ -99,14 +98,14 @@ def cargar_y_limpiar_datos(ruta, ultima_modificacion):
     mes_anterior_texto, mes_actual_texto = "Mes Anterior", "Mes Actual"
     nombre_hoja_anterior, nombre_hoja_actual = "", ""
     
-    # 1. Buscar todas las hojas que sean "Base algo" y extraer su número
+    # Buscar todas las hojas que sean "Base algo" y extraer su número
     hojas_base = []
     for hoja in nombres_hojas:
         match = re.search(r'Base\s*0?(\d+)', hoja, re.IGNORECASE)
         if match:
             hojas_base.append((int(match.group(1)), hoja))
             
-    # 2. Ordenar las hojas por número y agarrar las últimas dos
+    # Ordenar las hojas por número y agarrar las últimas dos
     hojas_base.sort(key=lambda x: x[0])
     
     if len(hojas_base) >= 2:
@@ -121,10 +120,8 @@ def cargar_y_limpiar_datos(ruta, ultima_modificacion):
         df_actual = pd.read_excel(xls, sheet_name=nombre_hoja_actual)
         
         for df in [df_anterior, df_actual]:
-            # --- LIMPIEZA DE TÍTULOS A PRUEBA DE BALAS ---
             df.columns = df.columns.astype(str).str.strip().str.upper()
             df.rename(columns={'DESVIOS': 'DESVIO'}, inplace=True)
-            # ---------------------------------------------
             
             for col in ['DESVIO', 'REGION', 'GROUP_COMER']:
                 if col in df.columns:
@@ -132,7 +129,6 @@ def cargar_y_limpiar_datos(ruta, ultima_modificacion):
 
     if 'Cancel' in nombres_hojas:
         df_cancel = pd.read_excel(xls, sheet_name='Cancel')
-        # Limpieza de títulos también para la hoja Cancel
         df_cancel.columns = df_cancel.columns.astype(str).str.strip().str.upper()
         for col in ['CANAL', 'MOTIVO CANCELACION', 'OBS']:
             if col in df_cancel.columns: 
@@ -143,15 +139,12 @@ def cargar_y_limpiar_datos(ruta, ultima_modificacion):
 # ==========================================
 # LÓGICA PRINCIPAL Y MENÚ LATERAL
 # ==========================================
-# ACORDATE DE ASEGURARTE QUE EL NOMBRE DEL EXCEL SEA EL CORRECTO
 ruta_excel = 'Fallidas 2026 Arg.xlsx'
 
 try:
-    # <-- ACÁ OBTENEMOS LA FECHA DE MODIFICACIÓN DEL EXCEL Y SE LA PASAMOS A LA FUNCIÓN
     tiempo_modificacion = os.path.getmtime(ruta_excel)
     nombres_hojas, mapa_meses, meses_ordenados, df_anterior, df_actual, df_cancel, mes_anterior, mes_actual, hoja_ant, hoja_act = cargar_y_limpiar_datos(ruta_excel, tiempo_modificacion)
     
-    # Título dinámico
     st.title(f"Comparativa de Fallidas 2026 - {mes_actual}") 
 
     col_desvio, col_region, col_agente = 'DESVIO', 'REGION', 'GROUP_COMER'
@@ -323,29 +316,30 @@ try:
                     delay = (i + 1) * 0.2
                     cantidad_anterior = agentes_anterior.get(agente, 0)
                     if cantidad_anterior == 0:
-                        html_delta = f'<span style="color: #FF4B4B; font-size: 22px; font-weight: bold;">🔺 N/A (Sin fallidas en {mes_anterior})</span>'
+                        html_delta = f'<span style="color: #FF4B4B; font-size: 20px; font-weight: bold;">🔺 N/A (Sin fallidas en {mes_anterior[:3]})</span>'
                     else:
                         delta_pct = ((cantidad_actual - cantidad_anterior) / cantidad_anterior) * 100
                         if delta_pct > 0: color_delta, flecha = "#FF4B4B", "🔺"
                         elif delta_pct < 0: color_delta, flecha = "#09AB3B", "🔻"
                         else: color_delta, flecha = "#888888", "➖"
-                        html_delta = f'<span style="color: {color_delta}; font-size: 24px; font-weight: bold;">{flecha} {abs(delta_pct):.1f}%</span> <span style="font-size: 20px;">vs {mes_anterior}</span>'
+                        html_delta = f'<span style="color: {color_delta}; font-size: 20px; font-weight: bold;">{flecha} {abs(delta_pct):.1f}%</span> <span style="font-size: 16px;">vs {mes_anterior}</span>'
 
                     html_tarjeta = f"""
-                    <div style="background-color: #ffffff; padding: 40px; border-radius: 16px; text-align: center; border: 1px solid #eee; border-top: 12px solid {colores_alerta[i]}; box-shadow: 4px 4px 15px rgba(0,0,0,0.05); height: 100%; animation: slideUpFade 0.6s ease-out {delay}s both;">
-                        <p style="margin: 0; font-size: 40px; color: {colores_alerta[i]}; font-weight: 900;">#{i+1}</p>
-                        <h3 style="margin: 10px 0 20px 0; color: #111; font-size: 32px; font-weight: 900;">{agente}</h3>
-                        <div style="display: flex; justify-content: center; gap: 40px; margin-bottom: 20px;">
-                            <div>
-                                <p style="margin: 0; font-size: 20px; color: #666;">{mes_actual}</p>
-                                <p style="margin: 0; font-size: 50px; font-weight: 900; color: #FF4B4B; animation: numberPop 0.5s ease-out {delay + 0.2}s both;">{cantidad_actual}</p>
+                    <div style="background-color: #ffffff; padding: 25px; border-radius: 16px; text-align: center; border: 1px solid #eee; border-top: 12px solid {colores_alerta[i]}; box-shadow: 4px 4px 15px rgba(0,0,0,0.05); height: 100%; animation: slideUpFade 0.6s ease-out {delay}s both;">
+                        <p style="margin: 0; font-size: 32px; color: {colores_alerta[i]}; font-weight: 900;">#{i+1}</p>
+                        <h3 style="margin: 5px 0 20px 0; color: #111; font-size: 24px; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{agente}">{agente}</h3>
+                        <div style="display: flex; justify-content: space-evenly; gap: 10px; margin-bottom: 20px; align-items: flex-end;">
+                            <div style="width: 45%;">
+                                <p style="margin: 0; font-size: 16px; color: #666;">{mes_actual[:3]}</p>
+                                <p style="margin: 0; font-size: 40px; font-weight: 900; color: #FF4B4B; animation: numberPop 0.5s ease-out {delay + 0.2}s both;">{cantidad_actual}</p>
                             </div>
-                            <div style="border-left: 2px solid #ddd; padding-left: 40px;">
-                                <p style="margin: 0; font-size: 20px; color: #666;">{mes_anterior}</p>
-                                <p style="margin: 0; font-size: 38px; font-weight: 600; color: #555; animation: numberPop 0.5s ease-out {delay + 0.3}s both;">{cantidad_anterior}</p>
+                            <div style="border-left: 2px solid #ddd; height: 60px;"></div>
+                            <div style="width: 45%;">
+                                <p style="margin: 0; font-size: 16px; color: #666;">{mes_anterior[:3]}</p>
+                                <p style="margin: 0; font-size: 30px; font-weight: 600; color: #555; animation: numberPop 0.5s ease-out {delay + 0.3}s both; padding-bottom: 5px;">{cantidad_anterior}</p>
                             </div>
                         </div>
-                        <div style="background-color: #f8f9fa; border-radius: 8px; padding: 15px; border: 1px solid #eee;">
+                        <div style="background-color: #f8f9fa; border-radius: 8px; padding: 12px; border: 1px solid #eee;">
                             {html_delta}
                         </div>
                     </div>
@@ -356,13 +350,12 @@ try:
                 st.warning(f"No se encontró la columna '{col_agente}' en ambos meses para comparar.")
 
         # ==========================================
-        # DIAPOSITIVAS RESTANTES
+        # DIAPOSITIVA 5: EVOLUCIÓN MENSUAL
         # ==========================================
         elif seleccion == "5. Evolución Mensual":
             mostrar_titulo_bloque("Evolución Mensual de Fallidas")
             datos_progreso = []
             
-            # ACÁ ESTÁN LOS PORCENTAJES FIJOS CON OCTUBRE AGREGADO
             porcentajes_fijos = {'ENERO': 14.69, 'FEBRERO': 15.45, 'MARZO': 15.10, 'ABRIL': 15.42, 'MAYO': 17.75, 'JUNIO': 15.37, 'JULIO': 14.91, 'AGOSTO': 12.58, 'SEPTIEMBRE': 12.88, 'OCTUBRE': 16.15}
             
             for hoja in nombres_hojas:
@@ -395,12 +388,17 @@ try:
                 fig_trend.add_trace(go.Scatter(x=df_progreso["Mes"], y=df_progreso["Porcentaje"], mode='markers+text', text=textos_html, textposition='top center', textfont=dict(color=colores_texto), marker=dict(symbol=simbolos, size=35, color=colores_marcadores, line=dict(color='#FFFFFF', width=3)), hovertemplate="<b>%{x}</b><br>Fallidas: %{y}%<extra></extra>", showlegend=False))
 
                 rango_max = df_progreso["Porcentaje"].max() + 14.0 
+                # Aseguramos que el fondo del gráfico en sí sea transparente para que tome el del div
                 fig_trend.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', height=750, xaxis=dict(showgrid=False, tickfont=dict(size=18, color='black', family="Inter"), title=""), yaxis=dict(showgrid=True, gridcolor='#f0f0f0', ticksuffix="%", tickfont=dict(size=18, color='#666'), title="<b>% de Fallidas</b>", title_font=dict(size=20), range=[0, rango_max]), margin=dict(t=100, b=40, l=40, r=40), hoverlabel=dict(bgcolor="#ffffff", font_size=15, font_family="Inter", font_color="#333333", bordercolor="#EAEAEA"))
                 
-                st.markdown('<div style="background-color: white; padding: 20px; border-radius: 16px; box-shadow: 0px 4px 15px rgba(0,0,0,0.05); border: 1px solid #eee; animation: slideUpFade 0.7s ease-out 0.2s both;">', unsafe_allow_html=True)
+                # Envolvemos el gráfico en un div blanco con sombra y bordes redondeados
+                st.markdown('<div style="background-color: #ffffff; padding: 20px; border-radius: 16px; box-shadow: 0px 4px 15px rgba(0,0,0,0.05); border: 1px solid #eee; animation: slideUpFade 0.7s ease-out 0.2s both;">', unsafe_allow_html=True)
                 st.plotly_chart(fig_trend, use_container_width=True, config={'displayModeBar': False})
                 st.markdown('</div>', unsafe_allow_html=True)
 
+        # ==========================================
+        # DIAPOSITIVA 6: ÓRDENES CANCELADAS POR CANAL
+        # ==========================================
         elif seleccion == "6. Canceladas por Canal":
             mostrar_titulo_bloque("Análisis de Órdenes Canceladas por Canal")
             if df_cancel is not None:
@@ -420,6 +418,9 @@ try:
                 else: st.warning("No se encontró la columna 'CANAL' en la hoja 'Cancel'.")
             else: st.error("No se encontró la hoja 'Cancel' en el archivo Excel.")
 
+        # ==========================================
+        # DIAPOSITIVA 7: MOTIVOS DE CANCELACIÓN
+        # ==========================================
         elif seleccion == "7. Motivos Cancelación":
             mostrar_titulo_bloque("Top Motivos de Cancelación")
             if df_cancel is not None:
@@ -441,6 +442,9 @@ try:
                 else: st.warning("No se encontró la columna 'MOTIVO CANCELACION' en la hoja 'Cancel'.")
             else: st.error("No se encontró la hoja 'Cancel' en el archivo Excel.")
 
+        # ==========================================
+        # DIAPOSITIVA 8: CLIENTE DESISTE
+        # ==========================================
         elif seleccion == "8. Desiste del Servicio":
             mostrar_titulo_bloque("Detalle: Cliente Desiste del Servicio")
             if df_cancel is not None:
@@ -469,6 +473,9 @@ try:
                 else: st.warning("No se encontraron las columnas 'MOTIVO CANCELACION' o 'OBS' en la hoja 'Cancel'.")
             else: st.error("No se encontró la hoja 'Cancel' en el archivo Excel.")
 
+        # ==========================================
+        # DIAPOSITIVA 9: CANAL AUTOGESTIÓN 
+        # ==========================================
         elif seleccion == "9. Autogestión":
             mostrar_titulo_bloque("Detalle: Canal Autogestión (Duplicidad de Carga)")
             if df_cancel is not None:
